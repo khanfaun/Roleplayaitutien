@@ -1,0 +1,58 @@
+{
+  "categories": {
+    "tieu_hao": {
+      "name": "Tiêu hao",
+      "tags": ["đan dược", "hồi phục", "linh thảo", "vật liệu", "đột phá"]
+    },
+    "trang_bi": {
+      "name": "Trang bị",
+      "tags": ["vũ khí", "kiếm", "hỏa", "giáp", "phòng ngự", "phụ kiện", "phàm phẩm", "áo choàng"]
+    },
+    "phap_bao": {
+      "name": "Pháp bảo",
+      "tags": ["hồ lô", "trận đồ", "pháp khí", "gương", "ấn", "hỏa"]
+    },
+    "cong_phap": {
+      "name": "Công pháp",
+      "tags": ["kiếm quyết", "tâm pháp", "cổ xưa", "luyện thể", "tu luyện", "dưỡng sinh"]
+    },
+    "npc": {
+      "name": "NPC",
+      "tags": ["lão giả", "thiếu nữ", "ma tu", "tiên nhân", "nam nhân", "đồng hành"]
+    }
+  },
+  "images": [
+    {
+      "fileName": "cong_phap/cong_phap (1).png",
+      "category": "cong_phap",
+      "tags": [
+        "đan dược",
+        "hồi phục"
+      ]
+    },
+    {
+      "fileName": "cong_phap/cong_phap (2).png",
+      "category": "cong_phap",
+      "tags": [
+        "vũ khí",
+        "kiếm",
+        "hỏa"
+      ]
+    },
+    {
+      "fileName": "cong_phap/cong_phap (3).png",
+      "category": "cong_phap",
+      "tags": ["đan dược", "đột phá"]
+    },
+    {
+      "fileName": "cong_phap/cong_phap (4).png",
+      "category": "cong_phap",
+      "tags": ["linh thảo", "vật liệu"]
+    },
+    {
+      "fileName": "cong_phap/cong_phap (5).png",
+      "category": "cong_phap",
+      "tags": ["vũ khí", "kiếm", "phàm phẩm"]
+    }
+  ]
+}
