@@ -2,7 +2,7 @@
 import React, { useState, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
 import ReactDOM from 'react-dom';
 import type { Quest, Player, GameState, DongPhuBuilding, Recipe, Item, Rule, JournalEntry, HeThongQuest, PlayerAttributes, ScenarioStage, StatusEffect, LinhCanQuality, NguHanhType, DestinyDefinition, InitialItem, InitialCongPhap, ItemEffectDefinition, EquipmentType, TechniqueType, ConsumableType, ThienThuImage, ThienThuImageManifest } from '../types';
-import { SECTS, PLAYER_ATTRIBUTE_NAMES, ALL_STAT_NAMES } from '../constants';
+import { SECTS, PLAYER_ATTRIBUTE_NAMES, ALL_STAT_NAMES } from '../../constants';
 import * as Icons from './Icons';
 import { PlusCircleIcon, PencilIcon, TrashIcon, CheckIcon, XIcon, ShieldCheckIcon, ChevronRightIcon, CpuChipIcon, QuestionMarkCircleIcon, ScaleIcon, HammerIcon, UserPlusIcon, BuildingLibraryIcon, MapIcon, SparklesIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import Panel from './Panel';

@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Player, BoardSquare, Quest, Item, CurrentEvent, ActionOutcome, CombatState, CombatTurnOutcome, CombatLoot, WorldPhase, Recipe, DongPhuState, GameState, HeThongQuest, ScenarioData, InitialItem, InitialCongPhap, InitialNpc, InitialSect, InitialLocation, PlayerAttributes, NguHanhType, ScenarioStage, MajorRealm, MinorRealm, RealmQuality, CultivationTier, ThienThuData, InitialProvince, InitialWorldRegion } from '../types';
 import { BOARD_SIZE, PLAYER_ATTRIBUTE_NAMES } from "../constants";
@@ -13,6 +12,27 @@ export function initializeGemini(apiKey: string) {
 export function clearGemini() {
     ai = null;
 }
+
+export async function validateApiKey(apiKey: string): Promise<boolean> {
+    if (!apiKey) return false;
+    const tempAi = new GoogleGenAI({ apiKey });
+    try {
+        // Thực hiện một cuộc gọi API rất nhẹ để xác thực key
+        await tempAi.models.generateContent({
+            model: model,
+            contents: 'validate', // Một prompt ngắn gọn, không quan trọng nội dung
+             config: {
+                thinkingConfig: { thinkingBudget: 0 } // Tắt thinking để có kết quả nhanh nhất và rẻ nhất
+            },
+        });
+        return true;
+    } catch (error) {
+        console.error("API Key validation failed:", error);
+        // Lỗi thường là 400 hoặc 403 nếu key không hợp lệ
+        return false;
+    }
+}
+
 
 const systemInstruction = `Bạn là một AI Quản Trò (Game Master) cho game tu tiên 'Tiên Lộ Mênh Mông'. Nhiệm vụ của bạn là dệt nên một câu chuyện liền mạch, logic và hấp dẫn dựa trên bối cảnh toàn diện của người chơi.
 

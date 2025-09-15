@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { GameState, ScenarioData, Rule, JournalEntry, ScenarioStage } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
@@ -16,13 +15,18 @@ import { ImageLibraryEditor } from './components/ImageLibraryEditor';
 const ApiKeyInputOverlay: React.FC<{
     onSubmit: (key: string) => void;
     isLoading: boolean;
-}> = ({ onSubmit, isLoading }) => {
+    error: string | null;
+    success: boolean;
+}> = ({ onSubmit, isLoading, error, success }) => {
     const [apiKey, setApiKey] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading || success) return;
         onSubmit(apiKey);
     };
+
+    const isFormDisabled = isLoading || success;
 
     return (
         <main className="h-screen w-screen p-4 text-white flex flex-col items-center justify-center gap-6 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 to-black">
@@ -38,14 +42,29 @@ const ApiKeyInputOverlay: React.FC<{
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder="Nhập API Key của bạn tại đây"
-                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white text-center"
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white text-center disabled:opacity-50"
+                        disabled={isFormDisabled}
                     />
+                    {error && !success && <p className="text-red-400 text-sm mt-2">{error}</p>}
+                    {success && <p className="text-green-400 text-sm mt-2">Xác thực thành công! Đang tải thế giới tu tiên...</p>}
                     <button
                         type="submit"
-                        disabled={isLoading || !apiKey.trim()}
-                        className="w-full px-6 py-3 font-bold text-lg rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-slate-900 shadow-lg hover:from-yellow-500 hover:to-orange-600 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-wait"
+                        disabled={isFormDisabled || !apiKey.trim()}
+                        className={`w-full px-6 py-3 font-bold text-lg rounded-lg text-slate-900 shadow-lg transition-all transform flex items-center justify-center gap-3
+                            ${success 
+                                ? 'bg-gradient-to-br from-green-500 to-emerald-600 cursor-default'
+                                : 'bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 hover:scale-105'
+                            }
+                            disabled:opacity-70 disabled:cursor-wait disabled:scale-100`
+                        }
                     >
-                        {isLoading ? "Đang kiểm tra..." : "Lưu và Bắt Đầu"}
+                        {success ? (
+                            <><CheckIcon className="w-7 h-7"/> <span>Thành công!</span></>
+                        ) : isLoading ? (
+                            "Đang kiểm tra..."
+                        ) : (
+                            "Lưu và Bắt Đầu"
+                        )}
                     </button>
                 </form>
                 <p className="text-slate-400 text-xs mt-2">
@@ -226,7 +245,7 @@ const App: React.FC = () => {
     }, [game]);
 
     if (!game.isApiReady) {
-        return <ApiKeyInputOverlay onSubmit={game.handleApiKeySubmit} isLoading={game.gameState.isLoading} />;
+        return <ApiKeyInputOverlay onSubmit={game.handleApiKeySubmit} isLoading={game.isVerifyingApiKey} success={game.apiValidationSuccess} error={game.apiValidationError} />;
     }
 
     if (view === 'intro') {
@@ -502,6 +521,7 @@ const App: React.FC = () => {
                             handleSaveGame={() => game.handleSaveGame()} 
                             handleLoadGame={(file) => game.handleLoadGame(file)} 
                             handleGoHome={() => game.goHome()} 
+                            handleClearApiKey={() => game.clearApiKey()}
                         />}
                         {activeCenterTab === 'thienThu' && <ThienThuPanelContent thienThu={game.gameState.thienThu} onItemImageChange={game.handleThienThuItemImageChange} />}
                     </div>
@@ -642,6 +662,7 @@ const App: React.FC = () => {
                                     handleSaveGame={() => game.handleSaveGame()} 
                                     handleLoadGame={(file) => game.handleLoadGame(file)} 
                                     handleGoHome={() => game.goHome()}
+                                    handleClearApiKey={() => game.clearApiKey()}
                                 />}
                             </div>
                         </div>
