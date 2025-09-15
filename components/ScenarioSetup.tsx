@@ -10,7 +10,7 @@ import { CharacterTab } from './setup/CharacterTab';
 import { ScenarioTab } from './setup/ScenarioTab';
 import { ElementsTab, PHAM_NHAN_TIER } from './setup/ElementsTab';
 import { CustomizationTab } from './setup/CustomizationTab';
-import { THIEN_THU_VAT_PHAM_TIEU_HAO, THIEN_THU_TRANG_BI, THIEN_THU_PHAP_BAO, THIEN_THU_CONG_PHAP } from '../../data/thienThu';
+import { THIEN_THU_VAT_PHAM_TIEU_HAO, THIEN_THU_TRANG_BI, THIEN_THU_PHAP_BAO, THIEN_THU_CONG_PHAP } from '../data/thienThu';
 import { getFinalBuff } from '../utils/buffMultipliers';
 
 
