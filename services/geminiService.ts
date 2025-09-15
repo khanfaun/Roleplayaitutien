@@ -1,8 +1,10 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Player, BoardSquare, Quest, Item, CurrentEvent, ActionOutcome, CombatState, CombatTurnOutcome, CombatLoot, WorldPhase, Recipe, DongPhuState, GameState, HeThongQuest, ScenarioData, InitialItem, InitialCongPhap, InitialNpc, InitialSect, InitialLocation, PlayerAttributes, NguHanhType, ScenarioStage, MajorRealm, MinorRealm, RealmQuality, CultivationTier, ThienThuData, InitialProvince, InitialWorldRegion } from '../types';
 import { BOARD_SIZE, PLAYER_ATTRIBUTE_NAMES } from "../constants";
 
-const API_KEY = process.env.API_KEY;
+// FIX: Cast `import.meta` to `any` to access Vite environment variables without full TypeScript type support for them.
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 export const isApiKeyMissing = !API_KEY;
 
