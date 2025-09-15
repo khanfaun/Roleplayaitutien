@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { GameState, Player, Item, ActionOutcome, CombatState, WorldPhase, Recipe, Quest, BoardSquare, DongPhuBuilding, Sect, Rule, JournalEntry, LogEntry, HeThongQuest, ScenarioData, NguHanhType, PlayerAttributes, StatChange, BreakthroughReport, ScenarioStage, StatusEffect, MajorRealm, MinorRealm, CultivationTier, RealmQuality, InitialItem, InitialCongPhap, CombatTurnOutcome } from '../types';
 import { INITIAL_PLAYER_STATS, BOARD_SIZE, PLAYER_NAME, WORLD_PHASE_NAMES, INITIAL_RECIPES, INITIAL_DONG_PHU_STATE, INITIAL_AI_RULES, INITIAL_THIEN_DAO_RULES, FULL_CONTEXT_REFRESH_CYCLE, CULTIVATION_SYSTEM, PLAYER_ATTRIBUTE_NAMES, INITIAL_CORE_MEMORY_RULES } from '../constants';
@@ -6,6 +7,7 @@ import { THIEN_THU_VAT_PHAM_TIEU_HAO, THIEN_THU_TRANG_BI, THIEN_THU_PHAP_BAO, TH
 import * as geminiService from '../services/geminiService';
 import { getFinalBuff } from '../utils/buffMultipliers';
 
+const API_KEY_STORAGE_KEY = 'gemini_api_key';
 const INITIAL_HETHONG_STATE = { quests: [] };
 const INITIAL_GAME_STATE: GameState = {
     player: INITIAL_PLAYER_STATS,
@@ -81,7 +83,7 @@ const applyCustomThienThu = (state: GameState): GameState => {
 
 export const useGameLogic = () => {
     const [gameState, setGameState] = useState<GameState>(() => applyCustomThienThu(JSON.parse(JSON.stringify(INITIAL_GAME_STATE))));
-    const [isApiConfigError, setIsApiConfigError] = useState(geminiService.isApiKeyMissing);
+    const [isApiReady, setIsApiReady] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const [hasLocalSave, setHasLocalSave] = useState(false);
     const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
@@ -745,10 +747,6 @@ export const useGameLogic = () => {
     }, []);
     
     const initializeGame = useCallback(async ({ setupData, isRestart }: { setupData?: ScenarioData, isRestart?: boolean }) => {
-        if (isApiConfigError) {
-            console.error("Cannot initialize game: API Key is missing.");
-            return;
-        }
         setGameState(prev => ({ ...prev, isLoading: true }));
         try {
             if (isRestart) {
@@ -865,7 +863,7 @@ export const useGameLogic = () => {
         } finally {
             setGameState(prev => ({ ...prev, isLoading: false }));
         }
-    }, [updatePlayerStatsForCultivation, goHome, addLogEntry, isApiConfigError]);
+    }, [updatePlayerStatsForCultivation, goHome, addLogEntry]);
 
     const continueGame = useCallback(() => {
         const savedGame = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -1066,9 +1064,54 @@ export const useGameLogic = () => {
         });
     }, []);
 
+    // --- API Key Logic ---
+    useEffect(() => {
+        const storedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+        if (storedKey) {
+            try {
+                geminiService.initializeGemini(storedKey);
+                setIsApiReady(true);
+            } catch (e) {
+                console.error("Failed to initialize with stored API key:", e);
+                localStorage.removeItem(API_KEY_STORAGE_KEY);
+            }
+        }
+    }, []);
+
+    const handleApiKeySubmit = useCallback(async (key: string) => {
+        if (!key.trim()) {
+            alert("API Key không được để trống.");
+            return;
+        }
+        setGameState(prev => ({ ...prev, isLoading: true }));
+        try {
+            geminiService.initializeGemini(key);
+            // A validation call could be added here, but for now we optimistically set it.
+            // The first real API call will serve as validation.
+            localStorage.setItem(API_KEY_STORAGE_KEY, key);
+            setIsApiReady(true);
+        } catch (error) {
+            alert(`Lỗi khởi tạo API: ${error instanceof Error ? error.message : String(error)}`);
+            localStorage.removeItem(API_KEY_STORAGE_KEY);
+            setIsApiReady(false);
+        } finally {
+            setGameState(prev => ({ ...prev, isLoading: false }));
+        }
+    }, []);
+
+    const clearApiKey = useCallback(() => {
+        localStorage.removeItem(API_KEY_STORAGE_KEY);
+        geminiService.clearGemini();
+        setIsApiReady(false);
+        goHome(); // Go back to intro screen which will now show API prompt
+    }, [goHome]);
+
+
     return {
         gameState,
-        isApiConfigError,
+        isApiReady,
+        handleApiKeySubmit,
+        clearApiKey,
         isInitialized,
         hasLocalSave,
         autoSaveEnabled,

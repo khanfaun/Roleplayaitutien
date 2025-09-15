@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { GameState, ScenarioData, Rule, JournalEntry, ScenarioStage } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
@@ -12,20 +13,51 @@ import { RealmStatsSimulator } from './components/RealmStatsSimulator';
 import { DESTINY_DEFINITIONS } from './data/effects';
 import { ImageLibraryEditor } from './components/ImageLibraryEditor';
 
-const ApiErrorOverlay: React.FC = () => (
-    <main className="h-screen w-screen p-4 text-white flex flex-col items-center justify-center gap-6 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 to-black">
-        <div className="p-8 bg-slate-800/50 border border-red-500/50 rounded-xl shadow-lg text-center flex flex-col items-center gap-4 max-w-lg">
-            <CogIcon className="w-16 h-16 text-red-400 animate-spin" style={{ animationDuration: '3s' }}/>
-            <h1 className="text-3xl font-bold text-red-400">Lỗi Cấu Hình</h1>
-            <p className="text-slate-300">
-                Không tìm thấy API_KEY trong môi trường thực thi.
-            </p>
-            <p className="text-slate-400 text-sm">
-                Ứng dụng không thể kết nối đến dịch vụ AI. Vui lòng đảm bảo rằng biến môi trường <code className="bg-slate-700 p-1 rounded font-mono text-yellow-300">API_KEY</code> đã được thiết lập chính xác trên nền tảng triển khai của bạn.
-            </p>
-        </div>
-    </main>
-);
+const ApiKeyInputOverlay: React.FC<{
+    onSubmit: (key: string) => void;
+    isLoading: boolean;
+}> = ({ onSubmit, isLoading }) => {
+    const [apiKey, setApiKey] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSubmit(apiKey);
+    };
+
+    return (
+        <main className="h-screen w-screen p-4 text-white flex flex-col items-center justify-center gap-6 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 to-black">
+            <div className="p-8 bg-slate-800/50 border border-yellow-500/50 rounded-xl shadow-lg text-center flex flex-col items-center gap-4 max-w-lg">
+                <CogIcon className="w-16 h-16 text-yellow-400"/>
+                <h1 className="text-3xl font-bold text-yellow-400">Yêu Cầu API Key</h1>
+                <p className="text-slate-300">
+                    Vui lòng nhập Google Gemini API Key của bạn để bắt đầu.
+                </p>
+                <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
+                    <input
+                        type="password"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        placeholder="Nhập API Key của bạn tại đây"
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white text-center"
+                    />
+                    <button
+                        type="submit"
+                        disabled={isLoading || !apiKey.trim()}
+                        className="w-full px-6 py-3 font-bold text-lg rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-slate-900 shadow-lg hover:from-yellow-500 hover:to-orange-600 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-wait"
+                    >
+                        {isLoading ? "Đang kiểm tra..." : "Lưu và Bắt Đầu"}
+                    </button>
+                </form>
+                <p className="text-slate-400 text-xs mt-2">
+                    Bạn có thể lấy API Key tại{' '}
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">
+                        Google AI Studio
+                    </a>. Key của bạn sẽ được lưu trên trình duyệt này.
+                </p>
+            </div>
+        </main>
+    );
+};
 
 // --- MOBILE-SPECIFIC COMPONENTS ---
 
@@ -93,23 +125,19 @@ const App: React.FC = () => {
     const prevHeThongStatusRef = useRef<string | undefined>(undefined);
     const prevIsThienMenhBanActiveRef = useRef<boolean | undefined>(undefined);
 
-    if (game.isApiConfigError) {
-        return <ApiErrorOverlay />;
-    }
-
     const handleToggleLeftPanel = (panelId: string) => {
         setActiveLeftPanel(prev => (prev === panelId ? null : panelId));
     };
 
     useEffect(() => {
         // When game is initialized, switch to game view
-        if (game.isInitialized) {
+        if (game.isInitialized && game.isApiReady) {
             setView('game');
-        } else if (view === 'game') {
-            // If game is no longer initialized (e.g., goHome), switch to intro
+        } else if (view === 'game' && (!game.isInitialized || !game.isApiReady)) {
+            // If game is no longer initialized or API key is cleared, switch to intro
             setView('intro');
         }
-    }, [game.isInitialized, view]);
+    }, [game.isInitialized, game.isApiReady, view]);
 
     useEffect(() => {
         if (view !== 'game') return;
@@ -196,6 +224,10 @@ const App: React.FC = () => {
             event.target.value = '';
         }
     }, [game]);
+
+    if (!game.isApiReady) {
+        return <ApiKeyInputOverlay onSubmit={game.handleApiKeySubmit} isLoading={game.gameState.isLoading} />;
+    }
 
     if (view === 'intro') {
          return (
@@ -300,7 +332,7 @@ const App: React.FC = () => {
                 cultivationSystem={game.gameState.cultivationSystem}
                 currentPlayer={game.gameState.player}
             />
-             {/* --- DESKTOP LAYOUT --- */}
+            {/* --- DESKTOP LAYOUT --- */}
              <div className="hidden md:flex flex-row w-full h-full gap-4">
                 {/* --- LEFT COLUMN --- */}
                  <div className="flex-shrink-0 flex flex-col w-[300px] gap-4 min-h-0">

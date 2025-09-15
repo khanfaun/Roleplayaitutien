@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
 import ReactDOM from 'react-dom';
 import type { Quest, Player, GameState, DongPhuBuilding, Recipe, Item, Rule, JournalEntry, HeThongQuest, PlayerAttributes, ScenarioStage, StatusEffect, LinhCanQuality, NguHanhType, DestinyDefinition, InitialItem, InitialCongPhap, ItemEffectDefinition, EquipmentType, TechniqueType, ConsumableType, ThienThuImage, ThienThuImageManifest } from '../types';
-import { SECTS, PLAYER_ATTRIBUTE_NAMES, ALL_STAT_NAMES } from '../constants';
+import { SECTS, PLAYER_ATTRIBUTE_NAMES, ALL_STAT_NAMES } from '../../constants';
 import * as Icons from './Icons';
 import { PlusCircleIcon, PencilIcon, TrashIcon, CheckIcon, XIcon, ShieldCheckIcon, ChevronRightIcon, CpuChipIcon, QuestionMarkCircleIcon, ScaleIcon, HammerIcon, UserPlusIcon, BuildingLibraryIcon, MapIcon, SparklesIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import Panel from './Panel';
@@ -966,6 +967,7 @@ interface ManagementPanelContentProps {
     handleSaveGame: () => void;
     handleLoadGame: (file: File) => void;
     handleGoHome: () => void;
+    handleClearApiKey: () => void;
 }
 
 const EditableList = ({ title, items, onUpdate, onAdd, onDelete, itemDisplay = 'text' }: { title: string, items: any[], onUpdate: (id: string, text: string) => void, onAdd: (text: string) => void, onDelete: (id: string) => void, itemDisplay?: 'text' | 'journal' }) => {
@@ -1046,7 +1048,7 @@ const EditableList = ({ title, items, onUpdate, onAdd, onDelete, itemDisplay = '
 
 
 export const ManagementPanelContent: React.FC<ManagementPanelContentProps> = ({
-    gameState, onRulesChange, onJournalChange, onScenarioUpdate, handleSaveGame, handleLoadGame, handleGoHome
+    gameState, onRulesChange, onJournalChange, onScenarioUpdate, handleSaveGame, handleLoadGame, handleGoHome, handleClearApiKey
 }) => {
     const [activeTab, setActiveTab] = useState('thaoTac');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1086,13 +1088,22 @@ export const ManagementPanelContent: React.FC<ManagementPanelContentProps> = ({
             <div className="p-4 text-sm overflow-y-auto styled-scrollbar flex-1">
                 {activeTab === 'thaoTac' && (
                     <div className="space-y-4">
-                        <h3 className="text-lg font-bold text-yellow-300">Thao Tác Game</h3>
-                        <p className="text-xs text-slate-400">Lưu tiến trình hiện tại, tải một file đã lưu, hoặc quay về trang chủ để bắt đầu một cuộc phiêu lưu mới.</p>
-                        <div className="flex flex-wrap gap-2">
-                            <button onClick={handleSaveGame} className="px-3 py-1.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 rounded">Lưu Game</button>
-                            <button onClick={handleLoadClick} className="px-3 py-1.5 text-sm font-semibold bg-cyan-600 hover:bg-cyan-700 rounded">Tải Game</button>
-                            <button onClick={handleGoHome} className="px-3 py-1.5 text-sm font-semibold bg-red-600 hover:bg-red-700 rounded">Về Trang Chủ</button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json,application/json" className="hidden" />
+                        <div>
+                            <h3 className="text-lg font-bold text-yellow-300">Thao Tác Game</h3>
+                            <p className="text-xs text-slate-400">Lưu tiến trình, tải file đã lưu, hoặc quay về trang chủ.</p>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                <button onClick={handleSaveGame} className="px-3 py-1.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 rounded">Lưu Game</button>
+                                <button onClick={handleLoadClick} className="px-3 py-1.5 text-sm font-semibold bg-cyan-600 hover:bg-cyan-700 rounded">Tải Game</button>
+                                <button onClick={handleGoHome} className="px-3 py-1.5 text-sm font-semibold bg-red-800 hover:bg-red-700 rounded">Về Trang Chủ</button>
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json,application/json" className="hidden" />
+                            </div>
+                        </div>
+                        <div className="pt-4 border-t border-slate-700">
+                             <h3 className="text-lg font-bold text-yellow-300">Quản lý API Key</h3>
+                             <p className="text-xs text-slate-400">Xóa API Key hiện tại để nhập lại một key mới.</p>
+                             <div className="flex flex-wrap gap-2 mt-2">
+                                <button onClick={handleClearApiKey} className="px-3 py-1.5 text-sm font-semibold bg-red-600 hover:bg-red-700 rounded">Xóa và Đổi API Key</button>
+                             </div>
                         </div>
                     </div>
                 )}

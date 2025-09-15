@@ -3,13 +3,16 @@ import { GoogleGenAI, Type } from "@google/genai";
 import type { Player, BoardSquare, Quest, Item, CurrentEvent, ActionOutcome, CombatState, CombatTurnOutcome, CombatLoot, WorldPhase, Recipe, DongPhuState, GameState, HeThongQuest, ScenarioData, InitialItem, InitialCongPhap, InitialNpc, InitialSect, InitialLocation, PlayerAttributes, NguHanhType, ScenarioStage, MajorRealm, MinorRealm, RealmQuality, CultivationTier, ThienThuData, InitialProvince, InitialWorldRegion } from '../types';
 import { BOARD_SIZE, PLAYER_ATTRIBUTE_NAMES } from "../constants";
 
-// FIX: Safely access Vite environment variables with a fallback to process.env for broader compatibility.
-const API_KEY = (import.meta as any).env?.VITE_API_KEY ?? process.env.API_KEY;
-
-export const isApiKeyMissing = !API_KEY;
-
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+let ai: GoogleGenAI | null = null;
 const model = 'gemini-2.5-flash';
+
+export function initializeGemini(apiKey: string) {
+    ai = new GoogleGenAI({ apiKey });
+}
+
+export function clearGemini() {
+    ai = null;
+}
 
 const systemInstruction = `Bạn là một AI Quản Trò (Game Master) cho game tu tiên 'Tiên Lộ Mênh Mông'. Nhiệm vụ của bạn là dệt nên một câu chuyện liền mạch, logic và hấp dẫn dựa trên bối cảnh toàn diện của người chơi.
 
@@ -353,8 +356,7 @@ const worldPhaseSchema = {
 
 const callGemini = async (prompt: string, schema: any) => {
     if (!ai) {
-        console.error("API Key not configured. Gemini API calls are disabled.");
-        throw new Error("Lỗi Cấu Hình API: Không thể thực hiện yêu cầu đến Gemini vì API Key không được cung cấp.");
+        throw new Error("Lỗi Cấu Hình API: Gemini client chưa được khởi tạo. Vui lòng cung cấp API Key.");
     }
     let jsonText = '';
     try {
@@ -911,8 +913,7 @@ export const generateTagsFromItems = async (allItems: (InitialItem | InitialCong
 
 export const analyzeImageForTags = async (base64ImageDataUrl: string, allTags: string[]): Promise<string[]> => {
     if (!ai) {
-        console.error("API Key not configured. Gemini API calls are disabled.");
-        throw new Error("Lỗi Cấu Hình API: Không thể thực hiện yêu cầu đến Gemini vì API Key không được cung cấp.");
+        throw new Error("Lỗi Cấu Hình API: Gemini client chưa được khởi tạo. Vui lòng cung cấp API Key.");
     }
     const match = base64ImageDataUrl.match(/^data:(.+);base64,(.+)$/);
     if (!match) throw new Error("Invalid base64 image format");
