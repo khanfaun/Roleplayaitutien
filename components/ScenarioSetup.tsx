@@ -4,7 +4,7 @@ import { BookOpenIcon, SparklesIcon, UserIcon, CogIcon } from './Icons';
 import * as Scenarios from '../data/scenarios';
 import { RealmStatsSimulator } from './RealmStatsSimulator';
 import { INITIAL_THIEN_DAO_RULES, INITIAL_CORE_MEMORY_RULES, INITIAL_PLAYER_STATS } from '../constants';
-import { DESTINY_DEFINITIONS, STATUS_EFFECT_DEFINITIONS, ALL_ITEM_EFFECT_DEFINITIONS } from '../../data/effects';
+import { DESTINY_DEFINITIONS, STATUS_EFFECT_DEFINITIONS, ALL_ITEM_EFFECT_DEFINITIONS } from '../data/effects';
 
 import { CharacterTab } from './setup/CharacterTab';
 import { ScenarioTab } from './setup/ScenarioTab';
