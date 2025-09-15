@@ -5,7 +5,7 @@ import GameBoard from './components/GameBoard';
 import Panel from './components/Panel';
 import { InteractionUI } from './components/InteractionUI';
 import { QuestPanelContent, CharacterPanelContent, DongPhuPanel, InventoryPanel, SectPanel, ManagementPanelContent, HeThongPanel, HeThongPanelContent, SectPanelContent, StatusEffectsDisplay, DestinyLabel, ThienThuPanelContent, LocationPanelContent } from './components/GamePanels';
-import { HeartIcon, StarIcon, ZapIcon, BookOpenIcon, BackpackIcon, UserIcon, SkullIcon, SparklesIcon, ShieldCheckIcon, ScrollIcon, DiceIcon, HomeIcon, RunningIcon, BrainIcon, CalendarIcon, CogIcon, PencilIcon, CheckIcon, XIcon, CpuChipIcon, BuildingLibraryIcon, MapIcon } from './components/Icons';
+import { HeartIcon, StarIcon, ZapIcon, BookOpenIcon, BackpackIcon, UserIcon, SkullIcon, SparklesIcon, ShieldCheckIcon, ScrollIcon, DiceIcon, HomeIcon, RunningIcon, BrainIcon, CalendarIcon, CogIcon, PencilIcon, CheckIcon, XIcon, CpuChipIcon, BuildingLibraryIcon, MapIcon, SpinnerIcon } from './components/Icons';
 import { ScenarioSetup } from './components/ScenarioSetup';
 import { BreakthroughModal } from './components/BreakthroughModal';
 import { RealmStatsSimulator } from './components/RealmStatsSimulator';
@@ -61,7 +61,10 @@ const ApiKeyInputOverlay: React.FC<{
                         {success ? (
                             <><CheckIcon className="w-7 h-7"/> <span>Thành công!</span></>
                         ) : isLoading ? (
-                            "Đang kiểm tra..."
+                            <>
+                                <SpinnerIcon className="w-7 h-7 animate-spin" />
+                                <span>Đang kiểm tra...</span>
+                            </>
                         ) : (
                             "Lưu và Bắt Đầu"
                         )}
