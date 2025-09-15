@@ -12,6 +12,21 @@ import { RealmStatsSimulator } from './components/RealmStatsSimulator';
 import { DESTINY_DEFINITIONS } from './data/effects';
 import { ImageLibraryEditor } from './components/ImageLibraryEditor';
 
+const ApiErrorOverlay: React.FC = () => (
+    <main className="h-screen w-screen p-4 text-white flex flex-col items-center justify-center gap-6 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 to-black">
+        <div className="p-8 bg-slate-800/50 border border-red-500/50 rounded-xl shadow-lg text-center flex flex-col items-center gap-4 max-w-lg">
+            <CogIcon className="w-16 h-16 text-red-400 animate-spin" style={{ animationDuration: '3s' }}/>
+            <h1 className="text-3xl font-bold text-red-400">Lỗi Cấu Hình</h1>
+            <p className="text-slate-300">
+                Không tìm thấy API_KEY trong môi trường thực thi.
+            </p>
+            <p className="text-slate-400 text-sm">
+                Ứng dụng không thể kết nối đến dịch vụ AI. Vui lòng đảm bảo rằng biến môi trường <code className="bg-slate-700 p-1 rounded font-mono text-yellow-300">API_KEY</code> đã được thiết lập chính xác trên nền tảng triển khai của bạn.
+            </p>
+        </div>
+    </main>
+);
+
 // --- MOBILE-SPECIFIC COMPONENTS ---
 
 // New stat bar component for mobile header
@@ -77,6 +92,10 @@ const App: React.FC = () => {
     const game = useGameLogic();
     const prevHeThongStatusRef = useRef<string | undefined>(undefined);
     const prevIsThienMenhBanActiveRef = useRef<boolean | undefined>(undefined);
+
+    if (game.isApiConfigError) {
+        return <ApiErrorOverlay />;
+    }
 
     const handleToggleLeftPanel = (panelId: string) => {
         setActiveLeftPanel(prev => (prev === panelId ? null : panelId));

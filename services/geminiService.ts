@@ -3,11 +3,10 @@ import type { Player, BoardSquare, Quest, Item, CurrentEvent, ActionOutcome, Com
 import { BOARD_SIZE, PLAYER_ATTRIBUTE_NAMES } from "../constants";
 
 const API_KEY = process.env.API_KEY;
-if (!API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-}
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+export const isApiKeyMissing = !API_KEY;
+
+const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 const model = 'gemini-2.5-flash';
 
 const systemInstruction = `Bạn là một AI Quản Trò (Game Master) cho game tu tiên 'Tiên Lộ Mênh Mông'. Nhiệm vụ của bạn là dệt nên một câu chuyện liền mạch, logic và hấp dẫn dựa trên bối cảnh toàn diện của người chơi.
@@ -351,6 +350,10 @@ const worldPhaseSchema = {
 
 
 const callGemini = async (prompt: string, schema: any) => {
+    if (!ai) {
+        console.error("API Key not configured. Gemini API calls are disabled.");
+        throw new Error("Lỗi Cấu Hình API: Không thể thực hiện yêu cầu đến Gemini vì API Key không được cung cấp.");
+    }
     let jsonText = '';
     try {
         const response = await ai.models.generateContent({
@@ -905,6 +908,10 @@ export const generateTagsFromItems = async (allItems: (InitialItem | InitialCong
 };
 
 export const analyzeImageForTags = async (base64ImageDataUrl: string, allTags: string[]): Promise<string[]> => {
+    if (!ai) {
+        console.error("API Key not configured. Gemini API calls are disabled.");
+        throw new Error("Lỗi Cấu Hình API: Không thể thực hiện yêu cầu đến Gemini vì API Key không được cung cấp.");
+    }
     const match = base64ImageDataUrl.match(/^data:(.+);base64,(.+)$/);
     if (!match) throw new Error("Invalid base64 image format");
     const mimeType = match[1];

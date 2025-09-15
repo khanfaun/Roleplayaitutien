@@ -81,6 +81,7 @@ const applyCustomThienThu = (state: GameState): GameState => {
 
 export const useGameLogic = () => {
     const [gameState, setGameState] = useState<GameState>(() => applyCustomThienThu(JSON.parse(JSON.stringify(INITIAL_GAME_STATE))));
+    const [isApiConfigError, setIsApiConfigError] = useState(geminiService.isApiKeyMissing);
     const [isInitialized, setIsInitialized] = useState(false);
     const [hasLocalSave, setHasLocalSave] = useState(false);
     const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
@@ -744,6 +745,10 @@ export const useGameLogic = () => {
     }, []);
     
     const initializeGame = useCallback(async ({ setupData, isRestart }: { setupData?: ScenarioData, isRestart?: boolean }) => {
+        if (isApiConfigError) {
+            console.error("Cannot initialize game: API Key is missing.");
+            return;
+        }
         setGameState(prev => ({ ...prev, isLoading: true }));
         try {
             if (isRestart) {
@@ -860,7 +865,7 @@ export const useGameLogic = () => {
         } finally {
             setGameState(prev => ({ ...prev, isLoading: false }));
         }
-    }, [updatePlayerStatsForCultivation, goHome, addLogEntry]);
+    }, [updatePlayerStatsForCultivation, goHome, addLogEntry, isApiConfigError]);
 
     const continueGame = useCallback(() => {
         const savedGame = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -1063,6 +1068,7 @@ export const useGameLogic = () => {
 
     return {
         gameState,
+        isApiConfigError,
         isInitialized,
         hasLocalSave,
         autoSaveEnabled,
