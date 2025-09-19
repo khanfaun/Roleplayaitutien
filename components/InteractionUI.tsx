@@ -28,7 +28,7 @@ export const InteractionUI: React.FC<InteractionUIProps> = ({ gameState, isLoadi
     
     const isInputDisabled = isLoading || isRolling;
     
-    let suggestions: string[] = [];
+    let suggestions: (string | object)[] = [];
     let combatContent: React.ReactNode = null;
 
     if (gameState.combatState) {
@@ -174,16 +174,42 @@ export const InteractionUI: React.FC<InteractionUIProps> = ({ gameState, isLoadi
 
             {suggestions.length > 0 && !isLoading && !isRolling && (
                  <div className="grid grid-cols-2 gap-2 mb-4 p-3 rounded-lg bg-slate-850/30 border border-slate-800/20">
-                    {suggestions.map((option, index) => (
-                        <button
-                            key={`${option}-${index}`}
-                            onClick={() => handleSuggestionClick(option)}
-                            className="text-xs text-center bg-slate-700/80 hover:bg-slate-600 px-3 py-2 rounded-lg transition-colors text-yellow-300"
-                            aria-label={`Gợi ý: ${option}`}
-                        >
-                            {option}
-                        </button>
-                    ))}
+                    {suggestions.map((option, index) => {
+                        let optionText: string;
+                        let key: string;
+                
+                        if (typeof option === 'string') {
+                            optionText = option;
+                            key = `${option}-${index}`;
+                        } else if (typeof option === 'object' && option !== null) {
+                            const opt = option as any;
+                            // Attempt to reconstruct the string from a potential object structure like {action, note}.
+                            // The AI rule requires notes to be in parentheses.
+                            optionText = `${opt.action || ''} ${opt.note || ''}`.trim();
+                            key = `${opt.id || JSON.stringify(option)}-${index}`;
+                        } else {
+                            // Fallback for any other unexpected type.
+                            optionText = String(option);
+                            key = `option-${index}`;
+                        }
+                
+                        // Prevent rendering empty or invalid buttons
+                        if (!optionText) {
+                            console.warn('Received an empty or invalid option:', option);
+                            return null;
+                        }
+                
+                        return (
+                            <button
+                                key={key}
+                                onClick={() => handleSuggestionClick(optionText)}
+                                className="text-xs text-center bg-slate-700/80 hover:bg-slate-600 px-3 py-2 rounded-lg transition-colors text-yellow-300"
+                                aria-label={`Gợi ý: ${optionText}`}
+                            >
+                                {optionText}
+                            </button>
+                        );
+                    })}
                 </div>
             )}
             

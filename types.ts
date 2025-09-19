@@ -1,5 +1,4 @@
 
-
 export type LinhCanQuality = 'Ngụy Linh Căn' | 'Phàm Linh Căn' | 'Huyền Linh Căn' | 'Địa Linh Căn' | 'Thiên Linh Căn';
 export type NguHanhType = 'kim' | 'moc' | 'thuy' | 'hoa' | 'tho';
 
@@ -160,6 +159,21 @@ export interface Player {
   heThongStatus: 'inactive' | 'active' | 'disabled';
   heThongPoints: number;
   statusEffects: StatusEffect[];
+  attitudeTowardsPC?: number;
+  personality?: 'Ôn hòa' | 'Hiếu chiến' | 'Trung dung' | 'Mưu mô';
+  personalHistory?: string;
+}
+
+// FIX: Add `imageId` to allow NPCs to have avatars.
+export type NpcCharacter = Player & {
+  id: string;
+  imageId?: string;
+};
+
+// FIX: Add a specific type for NPC update payloads to resolve type errors in actionProcessors.
+export interface NpcUpdatePayload extends Partial<NpcCharacter> {
+    newStatusEffects?: { id: string; duration: number; }[];
+    removeStatusEffectIds?: string[];
 }
 
 
@@ -377,10 +391,17 @@ export interface GameState {
   cultivationSystem: CultivationTier[];
   thienThu: ThienThuData;
   worldData: {
-    locations: InitialLocation[];
-    provinces: InitialProvince[];
-    worldRegions: InitialWorldRegion[];
+    worldLocations: WorldLocation[];
+    initialSects: InitialSect[];
+    initialNpcs: InitialNpc[];
   };
+  inGameNpcs: NpcCharacter[];
+  discoveredEntityIds: {
+    locations: string[];
+    sects: string[];
+    npcs: string[];
+  };
+  currentMapViewId: string | null;
 }
 
 export interface ActionOutcome {
@@ -430,6 +451,13 @@ export interface ActionOutcome {
     removeStatusEffectIds?: string[];
     // World Structure
     newLocationId?: string;
+    // FIX: Update type to NpcUpdatePayload to match the Gemini schema and resolve destructuring errors.
+    npcUpdates?: { npcId: string; updates: NpcUpdatePayload }[];
+    newlyDiscoveredIds?: {
+        locations?: string[];
+        sects?: string[];
+        npcs?: string[];
+    };
 }
 
 export interface CombatTurnOutcome {
@@ -501,12 +529,29 @@ export interface InitialCongPhap {
 export interface InitialNpc {
     id: string;
     name: string;
-    description: string;
+    description: string; // Biography
     relationship?: string;
+    initialAttitude?: 'Thân thiện' | 'Trung lập' | 'Cảnh giác' | 'Thù địch';
     imageId?: string;
     sectId?: string | null;
     sectRank?: string | null;
+    personality?: 'Ôn hòa' | 'Hiếu chiến' | 'Trung dung' | 'Mưu mô';
+    personalHistory?: string;
+    initialLocationId?: string | null;
+    
+    // Fields from Player setup, all optional
+    age?: number;
+    goals?: string;
+    linhCanQuality?: LinhCanQuality;
+    nguHanh?: Record<NguHanhType, number>;
+    selectedDestinyIds?: string[];
+    startingCultivationStageId?: string | null;
+    initialItems?: InitialItem[];
+    initialTrangBi?: InitialItem[];
+    initialPhapBao?: InitialItem[];
+    initialCongPhap?: InitialCongPhap[];
 }
+
 
 export interface InitialSect {
     id: string;
@@ -514,33 +559,42 @@ export interface InitialSect {
     alignment: 'Chính Đạo' | 'Ma Đạo' | 'Trung Lập';
     description: string;
     locationId?: string | null;
+    parentSectId?: string | null;
+    level?: number;
+    relationships?: {
+        allied?: string[];
+        friendly?: string[];
+        neutral?: string[];
+        rival?: string[];
+        hostile?: string[];
+    };
 }
 
-export interface InitialLocation {
+export interface DynamicStatus {
+    id: string;
+    turnsRemaining: number;
+}
+
+export interface WorldLocation {
     id: string;
     name: string;
     description: string;
-    provinceId: string;
-    type?: 'Quần Cư' | 'Tự Nhiên' | 'Tài Nguyên' | 'Nguy Hiểm' | 'Đặc Biệt' | 'Di Tích Cổ' | 'Bí Cảnh';
+    level?: number; 
+    parentId?: string | null;
+    sovereigntyType?: 'autonomous' | 'dependent';
+    controllingSectIds?: string[];
+    dynamicStatuses?: DynamicStatus[];
+    type?: 'city' | 'gate' | 'poi' | 'Quần Cư' | 'Tự Nhiên' | 'Tài Nguyên' | 'Nguy Hiểm' | 'Đặc Biệt' | 'Di Tích Cổ' | 'Bí Cảnh';
     safetyLevel?: 'An Toàn Khu' | 'Trung Lập' | 'Nguy Hiểm' | 'Tử Địa';
-    sovereignty?: string;
-    resources?: string;
     realmRequirement?: string;
     imageId?: string;
+    x?: number;
+    y?: number;
+    isPlayerHome?: boolean;
+    // FIX: Add missing 'connections' property to support location mapping.
+    connections?: string[];
 }
 
-export interface InitialProvince {
-    id: string;
-    name: string;
-    description: string;
-    worldRegionId: string;
-}
-
-export interface InitialWorldRegion {
-    id: string;
-    name: string;
-    description: string;
-}
 
 export interface ScenarioData {
   scenarioName: string;
@@ -566,9 +620,7 @@ export interface ScenarioData {
   initialCongPhap: InitialCongPhap[];
   initialNpcs: InitialNpc[];
   initialSects: InitialSect[];
-  initialLocations: InitialLocation[];
-  initialProvinces: InitialProvince[];
-  initialWorldRegions: InitialWorldRegion[];
+  worldLocations: WorldLocation[];
   cultivationSystem: CultivationTier[];
   startingLocationId: string | null;
   startingCultivationStageId: string | null;
