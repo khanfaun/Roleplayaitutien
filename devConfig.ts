@@ -9,4 +9,4 @@
  *
  * File này nên được xóa hoặc đặt cờ thành `false` khi triển khai sản phẩm thật.
  */
-export const DEV_MODE_SKIP_API_KEY = true;
+export const DEV_MODE_SKIP_API_KEY = false;
