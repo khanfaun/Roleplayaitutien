@@ -207,7 +207,21 @@ export const TIEN_NGHICH_WORLD_LOCATIONS: WorldLocation[] = [
         x: 30,
         y: 70,
     },
+// FIX: Completed the object with missing properties to conform to the WorldLocation type.
     { 
         id: 'tn_khu_vuc_hang_nhac', 
         name: "Hằng Nhạc Sơn Mạch", 
-        description: "Dãy núi chính của Triệu Quốc, linh
+        description: "Dãy núi chính của Triệu Quốc, linh khí dồi dào, là nơi Hằng Nhạc Phái tọa lạc.",
+        level: 3,
+        parentId: 'tn_quoc_gia_trieu',
+        controllingSectIds: ['hang_nhac_phai'],
+        type: 'Tự Nhiên',
+        safetyLevel: 'Trung Lập',
+        sovereigntyType: 'autonomous',
+        x: 65,
+        y: 50
+    },
+];
+
+// FIX: Added export for TIEN_NGHICH_CULTIVATION_SYSTEM to resolve import errors.
+export const TIEN_NGHICH_CULTIVATION_SYSTEM = CULTIVATION_SYSTEM;

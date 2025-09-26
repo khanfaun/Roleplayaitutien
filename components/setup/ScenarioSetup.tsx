@@ -67,7 +67,6 @@ export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBac
                            />
                         )}
                         {setup.mainTab === 'elements' && (
-                            // FIX: Corrected prop names ('worldLocations') and removed nonexistent props ('initialProvinces', 'initialWorldRegions') to match component definition.
                             <ElementsTab
                                 initialItems={setup.initialItems} setInitialItems={setup.setInitialItems}
                                 initialTrangBi={setup.initialTrangBi} setInitialTrangBi={setup.setInitialTrangBi}
@@ -81,6 +80,7 @@ export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBac
                                 onOpenSimulator={setup.handleOpenSimulator}
                                 customThienThu={setup.customThienThu}
                                 setCustomThienThu={setup.setCustomThienThu}
+                                destinyDefs={setup.destinyDefs}
                             />
                         )}
                         {setup.mainTab === 'character' && (
