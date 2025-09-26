@@ -1,3 +1,5 @@
+
+
 import React, { useState, useRef } from 'react';
 import type { StatusEffect, Player, PlayerAttributes } from '../../types';
 import { ALL_STAT_NAMES } from '../../constants';
@@ -23,11 +25,14 @@ const StatusLabel: React.FC<{ effect: StatusEffect, player: Player }> = ({ effec
         // Percent changes
         if (effect.effects.primaryStatChangePercent) {
             for (const [key, value] of Object.entries(effect.effects.primaryStatChangePercent)) {
+                // FIX: Added a type guard to ensure a player property is a number before performing arithmetic operations, preventing potential runtime errors and fixing the compile-time type error.
                 if (value !== undefined && value !== 0) {
                     const name = statNames[key] || key;
-                    const baseValue = player[key as keyof Player] as number;
-                    const change = Math.floor(baseValue * (value / 100));
-                    allEffects.push(`${name} ${change >= 0 ? '+' : ''}${change}`);
+                    const baseValue = player[key as keyof Player];
+                    if (typeof baseValue === 'number') {
+                        const change = Math.floor(baseValue * (value / 100));
+                        allEffects.push(`${name} ${change >= 0 ? '+' : ''}${change}`);
+                    }
                 }
             }
         }
@@ -78,11 +83,11 @@ const StatusLabel: React.FC<{ effect: StatusEffect, player: Player }> = ({ effec
 
 export const StatusEffectsDisplay: React.FC<{ effects: StatusEffect[], player: Player }> = ({ effects, player }) => {
     if (!effects || effects.length === 0) {
-        return <p className="text-sm text-slate-400 italic px-4">Không có trạng thái đặc biệt.</p>;
+        return <p className="text-sm text-slate-400 italic">Không có trạng thái đặc biệt.</p>;
     }
 
     return (
-        <div className="flex flex-wrap gap-2 p-2">
+        <div className="flex flex-wrap gap-2">
             {effects.map(effect => <StatusLabel key={effect.id} effect={effect} player={player}/>)}
         </div>
     );

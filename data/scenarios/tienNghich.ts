@@ -1,3 +1,5 @@
+
+
 import type { ScenarioStage, InitialItem, InitialCongPhap, InitialNpc, InitialSect, WorldLocation, NguHanhType, Rule, CultivationTier, LinhCanQuality } from '../../types';
 import { CULTIVATION_SYSTEM } from '../../constants';
 
@@ -125,11 +127,16 @@ export const TIEN_NGHICH_NPCS: InitialNpc[] = [
     { id: 'luc_yen', name: "Lục Yên", description: "Nữ tu sĩ Bách Độc Môn, tính cách cổ quái, am hiểu độc thuật. Ban đầu lạnh lùng nhưng dần bị sự lương thiện của Lâm Hồn cảm hóa.", relationship: 'Đồng hành', personalHistory: "Từng bị phản bội trong môn phái nên luôn cảnh giác với người lạ. Việc được Lâm Hồn cứu giúp đã gieo một hạt giống hoài nghi về con đường tu luyện của bản thân." }
 ];
 export const TIEN_NGHICH_SECTS: InitialSect[] = [
-    { id: 'thanh_moc_tong', name: "Thanh Mộc Tông", alignment: 'Chính Đạo', description: "Một tiểu môn phái chuyên tu luyện công pháp Mộc hệ, chủ trương thuận theo tự nhiên, không thích tranh đấu.", level: 2, locationId: 'tn_khu_vuc_thanh_moc' },
-    { id: 'hang_nhac_phai', name: "Hằng Nhạc Phái", alignment: 'Chính Đạo', description: "Một trong ba đại tông môn của nước Triệu, từng là nơi Vương Lâm tu luyện.", level: 4, locationId: 'tn_khu_vuc_hang_nhac' },
-    { id: 'huyen_dao_tong', name: "Huyền Đạo Tông", alignment: 'Chính Đạo', description: "Một trong ba đại tông môn của nước Triệu, nổi tiếng với các đan dược và pháp thuật kỳ dị.", level: 4, locationId: 'tn_quoc_gia_trieu' },
-    { id: 'thi_ma_mon', name: "Thi Ma Môn", alignment: 'Ma Đạo', description: "Ma môn tàn độc, chuyên luyện chế cương thi và các loại ma công âm hiểm.", level: 5, locationId: 'tn_khu_vuc_thi_am_tong' },
-    { id: 'hop_hoan_tong', name: "Hợp Hoan Tông", alignment: 'Ma Đạo', description: "Ma môn nổi tiếng với thuật song tu, đệ tử thường dùng mị thuật để khống chế người khác.", level: 5, locationId: 'tn_quoc_gia_trieu' }
+// FIX: Add missing properties `ranks`, `facilities`, and `treasury` to conform to the InitialSect type.
+    { id: 'thanh_moc_tong', name: "Thanh Mộc Tông", alignment: 'Chính Đạo', description: "Một tiểu môn phái chuyên tu luyện công pháp Mộc hệ, chủ trương thuận theo tự nhiên, không thích tranh đấu.", level: 2, locationId: 'tn_khu_vuc_thanh_moc', ranks: [], facilities: [], treasury: {} },
+// FIX: Add missing properties `ranks`, `facilities`, and `treasury` to conform to the InitialSect type.
+    { id: 'hang_nhac_phai', name: "Hằng Nhạc Phái", alignment: 'Chính Đạo', description: "Một trong ba đại tông môn của nước Triệu, từng là nơi Vương Lâm tu luyện.", level: 4, locationId: 'tn_khu_vuc_hang_nhac', ranks: [], facilities: [], treasury: {} },
+// FIX: Add missing properties `ranks`, `facilities`, and `treasury` to conform to the InitialSect type.
+    { id: 'huyen_dao_tong', name: "Huyền Đạo Tông", alignment: 'Chính Đạo', description: "Một trong ba đại tông môn của nước Triệu, nổi tiếng với các đan dược và pháp thuật kỳ dị.", level: 4, locationId: 'tn_quoc_gia_trieu', ranks: [], facilities: [], treasury: {} },
+// FIX: Add missing properties `ranks`, `facilities`, and `treasury` to conform to the InitialSect type.
+    { id: 'thi_ma_mon', name: "Thi Ma Môn", alignment: 'Ma Đạo', description: "Ma môn tàn độc, chuyên luyện chế cương thi và các loại ma công âm hiểm.", level: 5, locationId: 'tn_khu_vuc_thi_am_tong', ranks: [], facilities: [], treasury: {} },
+// FIX: Add missing properties `ranks`, `facilities`, and `treasury` to conform to the InitialSect type.
+    { id: 'hop_hoan_tong', name: "Hợp Hoan Tông", alignment: 'Ma Đạo', description: "Ma môn nổi tiếng với thuật song tu, đệ tử thường dùng mị thuật để khống chế người khác.", level: 5, locationId: 'tn_quoc_gia_trieu', ranks: [], facilities: [], treasury: {} }
 ];
 export const TIEN_NGHICH_WORLD_LOCATIONS: WorldLocation[] = [
     // Level 1: Đại Vực
@@ -141,7 +148,9 @@ export const TIEN_NGHICH_WORLD_LOCATIONS: WorldLocation[] = [
         parentId: null, 
         controllingSectIds: [],
         type: 'Quần Cư',
-        safetyLevel: 'Nguy Hiểm'
+        safetyLevel: 'Nguy Hiểm',
+        x: 50,
+        y: 50,
     },
     {
         id: 'tn_dai_vuc_ngoai_vuc',
@@ -152,7 +161,9 @@ export const TIEN_NGHICH_WORLD_LOCATIONS: WorldLocation[] = [
         controllingSectIds: [],
         type: 'Nguy Hiểm',
         safetyLevel: 'Tử Địa',
-        realmRequirement: 'Kết Đan Kỳ'
+        realmRequirement: 'Kết Đan Kỳ',
+        x: 85,
+        y: 40,
     },
     {
         id: 'tn_dai_vuc_la_thien',
@@ -163,7 +174,9 @@ export const TIEN_NGHICH_WORLD_LOCATIONS: WorldLocation[] = [
         controllingSectIds: [],
         type: 'Quần Cư',
         safetyLevel: 'Nguy Hiểm',
-        realmRequirement: 'Nguyên Anh Kỳ'
+        realmRequirement: 'Nguyên Anh Kỳ',
+        x: 40,
+        y: 15,
     },
     // Level 2: Quốc Gia in Nam Vực
     { 
@@ -175,7 +188,9 @@ export const TIEN_NGHICH_WORLD_LOCATIONS: WorldLocation[] = [
         sovereigntyType: 'autonomous',
         controllingSectIds: ['hang_nhac_phai', 'huyen_dao_tong'],
         type: 'Quần Cư',
-        safetyLevel: 'Trung Lập'
+        safetyLevel: 'Trung Lập',
+        x: 50,
+        y: 50,
     },
     // Level 3: Locations in Triệu Quốc
     { 
@@ -188,31 +203,11 @@ export const TIEN_NGHICH_WORLD_LOCATIONS: WorldLocation[] = [
         controllingSectIds: ['thanh_moc_tong'],
         type: 'Tự Nhiên',
         safetyLevel: 'An Toàn Khu',
-        realmRequirement: 'Ngưng Khí Kỳ'
+        realmRequirement: 'Ngưng Khí Kỳ',
+        x: 30,
+        y: 70,
     },
     { 
         id: 'tn_khu_vuc_hang_nhac', 
         name: "Hằng Nhạc Sơn Mạch", 
-        description: "Dãy núi chính của Triệu Quốc, linh khí dồi dào, là nơi Hằng Nhạc Phái tọa lạc.", 
-        level: 3, 
-        parentId: 'tn_quoc_gia_trieu', 
-        sovereigntyType: 'autonomous',
-        controllingSectIds: ['hang_nhac_phai'],
-        type: 'Quần Cư',
-        safetyLevel: 'An Toàn Khu',
-        realmRequirement: 'Ngưng Khí Kỳ'
-    },
-    { 
-        id: 'tn_khu_vuc_thi_am_tong', 
-        name: "Thi Âm Tông Cựu Chỉ", 
-        description: "Tàn tích của Thi Âm Tông xưa, âm khí nặng nề, thường có cương thi và du hồn lảng vảng. Về sau bị Thi Ma Môn chiếm cứ.", 
-        level: 3, 
-        parentId: 'tn_quoc_gia_trieu', 
-        sovereigntyType: 'dependent',
-        controllingSectIds: ['thi_ma_mon'],
-        type: 'Nguy Hiểm',
-        safetyLevel: 'Tử Địa',
-        realmRequirement: 'Trúc Cơ Kỳ'
-    }
-];
-export const TIEN_NGHICH_CULTIVATION_SYSTEM: CultivationTier[] = CULTIVATION_SYSTEM;
+        description: "Dãy núi chính của Triệu Quốc, linh

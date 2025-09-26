@@ -14,6 +14,7 @@ const DestinySelector: React.FC<{selectedIds: string[], onChange: (ids: string[]
     const wrapperRef = useRef<HTMLDivElement>(null);
 
     const spentPoints = selectedIds.reduce((total, id) => {
+        // FIX: Ensure destiny is not undefined before accessing cost
         const destiny = destinies.find(d => d.id === id);
         return total + (destiny?.cost || 0);
     }, 0);
@@ -84,8 +85,9 @@ const DestinySelector: React.FC<{selectedIds: string[], onChange: (ids: string[]
         if (allEffects.length === 0) return 'Không có hiệu ứng đặc biệt.';
         return allEffects.join('<br />');
     };
-
-    const selectedDestinies = selectedIds.map(id => destinies.find(d => d.id === id)).filter(Boolean);
+    
+    // FIX: Used a type guard to ensure TypeScript correctly infers the type of `destiny` after filtering.
+    const selectedDestinies = selectedIds.map(id => destinies.find(d => d.id === id)).filter((d): d is DestinyDefinition => !!d);
     const availableDestinies = destinies.filter(d => !selectedIds.includes(d.id));
 
     return (

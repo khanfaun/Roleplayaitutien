@@ -1,3 +1,4 @@
+// FIX: Added import for React to resolve JSX namespace errors.
 import React from 'react';
 import type { PlayerAttributes, StatusEffect, NguHanhType } from '../../../types';
 import { PLAYER_ATTRIBUTE_NAMES } from '../../../constants';

@@ -4,11 +4,13 @@ import * as geminiService from '../../services/geminiService';
 import type { GameState, ScenarioData, Player, Item, InitialItem, InitialCongPhap, NguHanhType, CultivationTier, NpcCharacter, WorldLocation } from '../../types';
 import { PLAYER_NAME, INITIAL_PLAYER_STATS } from '../../constants';
 import { calculateNpcStats } from '../../utils/npcCalculations';
+// FIX: Import types directly from 'react' to resolve 'React' namespace errors.
+import type { Dispatch, SetStateAction } from 'react';
 
 // --- Dependencies for this module ---
 type Setters = {
-    setGameState: React.Dispatch<React.SetStateAction<GameState>>;
-    setIsInitialized: React.Dispatch<React.SetStateAction<boolean>>;
+    setGameState: Dispatch<SetStateAction<GameState>>;
+    setIsInitialized: Dispatch<SetStateAction<boolean>>;
 };
 
 type Callbacks = {

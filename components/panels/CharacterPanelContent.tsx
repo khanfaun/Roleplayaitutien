@@ -1,3 +1,5 @@
+
+
 import React, { useState, useRef, useMemo } from 'react';
 import type { GameState, PlayerAttributes, LinhCanQuality, NguHanhType, DestinyDefinition } from '../../types';
 import { PLAYER_ATTRIBUTE_NAMES, ALL_STAT_NAMES } from '../../constants';
@@ -18,7 +20,7 @@ const formatDestinyEffects = (effects?: DestinyDefinition['effects']): string =>
         for (const [key, value] of Object.entries(effects.primaryStatChange)) {
             if (value !== undefined && value !== 0) {
                 const name = statNames[key] || key;
-                allEffects.push(`${name} ${value > 0 ? '+' : ''}${value}`);
+                allEffects.push(`${name} ${(value as number) > 0 ? '+' : ''}${value}`);
             }
         }
     }
@@ -26,7 +28,7 @@ const formatDestinyEffects = (effects?: DestinyDefinition['effects']): string =>
         for (const [key, value] of Object.entries(effects.attributeChange)) {
             if (value !== undefined && value !== 0) {
                 const name = statNames[key] || key;
-                allEffects.push(`${name} ${value > 0 ? '+' : ''}${value}`);
+                allEffects.push(`${name} ${(value as number) > 0 ? '+' : ''}${value}`);
             }
         }
     }
@@ -34,7 +36,7 @@ const formatDestinyEffects = (effects?: DestinyDefinition['effects']): string =>
     return allEffects.join('<br />');
 };
 
-export const DestinyLabel: React.FC<{ destiny: import('../../types').DestinyDefinition }> = ({ destiny }) => {
+export const DestinyLabel: React.FC<{ destiny: DestinyDefinition }> = ({ destiny }) => {
     const [showTooltip, setShowTooltip] = useState(false);
     const labelRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +89,8 @@ export const CharacterPanelContent: React.FC<{ gameState: GameState; onOpenSimul
                 for (const [key, value] of Object.entries(effect.effects.attributeChangePercent)) {
                     if(value !== undefined) {
                         const baseValue = player.attributes[key as keyof PlayerAttributes];
-                        const change = Math.floor(baseValue * (value / 100));
+// FIX: Cast value to number to fix arithmetic operation error.
+                        const change = Math.floor(baseValue * ((value as number) / 100));
                         attributes[key as keyof PlayerAttributes] += change;
                     }
                 }

@@ -1,9 +1,12 @@
+
+
 import React, { useState } from 'react';
 import type { GameState, InitialItem, InitialCongPhap, PlayerAttributes } from '../../types';
 import { PLAYER_ATTRIBUTE_NAMES } from '../../constants';
 import * as Icons from '../Icons';
 import { ImageAssignmentModal } from './ImageAssignmentModal';
-import { getImageUrl, getRankColor, EffectLabel } from './InventoryPanel'; // Assuming shared components are exported from InventoryPanel
+// FIX: Imported EffectLabel from InventoryPanel where it is defined and exported.
+import { getImageUrl, getRankColor, EffectLabel } from './InventoryPanel'; 
 
 export const ThienThuPanelContent: React.FC<{
     thienThu: GameState['thienThu'];

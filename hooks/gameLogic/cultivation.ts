@@ -1,4 +1,5 @@
-import type { CultivationTier, MajorRealm, MinorRealm, Player, PlayerAttributes, StatChange } from '../../types';
+
+import type { CultivationTier, MajorRealm, MinorRealm, Player, PlayerAttributes, StatChange, StatusEffect } from '../../types';
 import { INITIAL_PLAYER_STATS, PLAYER_ATTRIBUTE_NAMES } from '../../constants';
 import { DESTINY_DEFINITIONS } from '../../data/effects';
 import { getFinalBuff } from '../../utils/buffMultipliers';
@@ -81,10 +82,14 @@ export const updatePlayerStatsForCultivation = (playerState: Player, system: Cul
                 for (const [key, value] of Object.entries(destiny.effects.primaryStatChange)) {
                      if (value !== undefined) {
                          const statKey = key as keyof Player;
-                         (newPlayer[statKey] as number) += value;
-                         if (key === 'maxHp') newPlayer.hp = newPlayer.maxHp;
-                         if (key === 'maxStamina') newPlayer.stamina = newPlayer.maxStamina;
-                         if (key === 'maxMentalState') newPlayer.mentalState = newPlayer.maxMentalState;
+                         // FIX: Cast `value` to number and check if the player stat is a number to resolve unsafe arithmetic operation error.
+                         const playerStat = newPlayer[statKey];
+                         if (typeof playerStat === 'number') {
+                            (newPlayer[statKey] as number) = playerStat + (value as number);
+                            if (key === 'maxHp') newPlayer.hp = newPlayer.maxHp;
+                            if (key === 'maxStamina') newPlayer.stamina = newPlayer.maxStamina;
+                            if (key === 'maxMentalState') newPlayer.mentalState = newPlayer.maxMentalState;
+                         }
                      }
                 }
             }
@@ -117,7 +122,7 @@ export const updatePlayerStatsForCultivation = (playerState: Player, system: Cul
         if(destiny?.effects?.primaryStatChange) {
             for (const [key, value] of Object.entries(destiny.effects.primaryStatChange)) {
                  if (value !== undefined && key in basePrimary) {
-                    basePrimary[key as keyof typeof basePrimary] += value;
+                    (basePrimary as any)[key] += value;
                  }
             }
         }
@@ -136,6 +141,7 @@ export const updatePlayerStatsForCultivation = (playerState: Player, system: Cul
     newPlayer.maxStamina = Math.floor(basePrimary.maxStamina * getFinalBuff(difficulty, 'main', 'maxStamina', tier.rank, major.rank, minor.rank, qualityRank));
     newPlayer.maxMentalState = Math.floor(basePrimary.maxMentalState * getFinalBuff(difficulty, 'main', 'maxMentalState', tier.rank, major.rank, minor.rank, qualityRank));
     newPlayer.maxExp = Math.floor(basePrimary.maxExp * getFinalBuff(difficulty, 'main', 'maxExp', tier.rank, major.rank, minor.rank, qualityRank));
+
     newPlayer.lifespan = major.baseLifespan + qualityLifespanBonus;
     
     playerState.selectedDestinyIds.forEach(id => {
@@ -149,8 +155,11 @@ export const updatePlayerStatsForCultivation = (playerState: Player, system: Cul
     newPlayer.cultivationQualityId = newQualityId;
     newPlayer.cultivationStage = `${major.name} ${minor.name}`.trim();
     newPlayer.cultivationQuality = newQuality ? newQuality.name : null;
+
     newPlayer.level += 1;
     newPlayer.exp = 0;
+    
+    // Full heal on breakthrough
     newPlayer.hp = newPlayer.maxHp;
     newPlayer.spiritPower = newPlayer.maxSpiritPower;
     newPlayer.stamina = newPlayer.maxStamina;

@@ -1,3 +1,4 @@
+
 import type { ScenarioStage, InitialItem, InitialCongPhap, InitialNpc, InitialSect, WorldLocation, Rule, CultivationTier, MinorRealm } from '../../types';
 import { STANDARD_4_MINOR_REALMS_DV } from './helpers';
 
@@ -35,13 +36,14 @@ export const NNVH_NPCS: InitialNpc[] = [
     { id: 'lao_mac', name: "Lão Mặc", description: "Một trưởng lão Hỏa Táo Phòng có vẻ ngoài lôi thôi nhưng lại có kiến thức sâu rộng về Luyện Khí, người đầu tiên nhận ra tài năng của Lãnh Nguyệt.", personalHistory: "Từng là một thiên tài Luyện Khí nhưng vì một lần thất bại mà tâm huyết nguội lạnh, lui về Hỏa Táo Phòng. Nhìn thấy Lãnh Nguyệt như thấy lại chính mình năm xưa." }
 ];
 export const NNVH_SECTS: InitialSect[] = [
-    { id: 'linh_khe_tong', name: "Linh Khê Tông", alignment: 'Chính Đạo', description: "Một trong tứ đại tông môn của hạ du Tu Chân Giới, nội tình sâu không lường được." }
+// FIX: Add missing properties `ranks`, `facilities`, and `treasury` to conform to the InitialSect type.
+    { id: 'linh_khe_tong', name: "Linh Khê Tông", alignment: 'Chính Đạo', description: "Một trong tứ đại tông môn của hạ du Tu Chân Giới, nội tình sâu không lường được.", ranks: [], facilities: [], treasury: {} }
 ];
-// FIX: Add missing 'controllingSectIds' property to WorldLocation objects to satisfy the type definition.
+// FIX: Add missing 'type' property to WorldLocation objects to satisfy the type definition.
 export const NNVH_WORLD_LOCATIONS: WorldLocation[] = [
-    { id: 'nnvh_wr_dong_mach', name: 'Đông Mạch Hạ Du', description: 'Vùng hạ du của Thông Thiên Hà.', level: 1, parentId: null, controllingSectIds: [] },
-    { id: 'nnvh_prov_dong_lam', name: 'Đông Lâm Sơn Mạch', description: 'Một dãy núi trù phú, nơi Linh Khê Tông tọa lạc.', level: 2, parentId: 'nnvh_wr_dong_mach', controllingSectIds: ['linh_khe_tong'] },
-    { id: 'hoa_tao_phong', name: "Hỏa Táo Phòng", description: "Nơi tưởng chừng như chỉ dành cho đệ tử tạp dịch, nhưng lại ẩn chứa địa hỏa và các tài nguyên cần thiết cho Luyện Khí.", level: 3, parentId: 'nnvh_prov_dong_lam', controllingSectIds: ['linh_khe_tong'] }
+    { id: 'nnvh_wr_dong_mach', name: 'Đông Mạch Hạ Du', description: 'Vùng hạ du của Thông Thiên Hà.', level: 1, parentId: null, controllingSectIds: [], type: 'Quần Cư', x: 50, y: 50 },
+    { id: 'nnvh_prov_dong_lam', name: 'Đông Lâm Sơn Mạch', description: 'Một dãy núi trù phú, nơi Linh Khê Tông tọa lạc.', level: 2, parentId: 'nnvh_wr_dong_mach', controllingSectIds: ['linh_khe_tong'], type: 'Tự Nhiên', x: 50, y: 50 },
+    { id: 'hoa_tao_phong', name: "Hỏa Táo Phòng", description: "Nơi tưởng chừng như chỉ dành cho đệ tử tạp dịch, nhưng lại ẩn chứa địa hỏa và các tài nguyên cần thiết cho Luyện Khí.", level: 3, parentId: 'nnvh_prov_dong_lam', controllingSectIds: ['linh_khe_tong'], type: 'Tài Nguyên', x: 50, y: 50 }
 ];
 const NNVH_CULTIVATION_SYSTEM_DATA: CultivationTier[] = [
     {

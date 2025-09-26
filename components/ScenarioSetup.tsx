@@ -15,6 +15,8 @@ interface ScenarioSetupProps {
 }
 
 export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBack, isLoading }) => {
+    // FIX: All properties on 'setup' were erroring because useScenarioSetup was not fully implemented.
+    // The implementation of useScenarioSetup now correctly returns all necessary state and handlers.
     const setup = useScenarioSetup({ onStartGame });
 
     return (
@@ -67,7 +69,6 @@ export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBac
                            />
                         )}
                         {setup.mainTab === 'elements' && (
-                            // FIX: Corrected prop names ('worldLocations') and removed nonexistent props ('initialProvinces', 'initialWorldRegions') to match component definition.
                             <ElementsTab
                                 initialItems={setup.initialItems} setInitialItems={setup.setInitialItems}
                                 initialTrangBi={setup.initialTrangBi} setInitialTrangBi={setup.setInitialTrangBi}

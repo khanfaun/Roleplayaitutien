@@ -15,7 +15,7 @@ import {
 interface ScenarioResponse {
     story: string;
     board: BoardSquare[];
-    initialQuest: Omit<Quest, 'status'>;
+    initialQuest: Omit<Quest, 'status' | 'id'>;
     initialEvent: CurrentEvent;
     worldPhase: WorldPhase;
     journalEntry: string;
@@ -36,35 +36,15 @@ const getSectDisplayName = (sect: InitialSect, allSects: InitialSect[]): string 
 const formatInitialElements = (data: ScenarioData) => {
     let result = "Dựa vào các yếu tố dưới đây để lồng ghép vào câu chuyện và trạng thái khởi đầu của người chơi.\n\n";
 
-    const formatAttributes = (attributes?: Partial<PlayerAttributes>) => {
-        if (!attributes || Object.keys(attributes).length === 0) return '';
-        const parts = Object.entries(attributes)
-            .map(([key, value]) => {
-                const name = PLAYER_ATTRIBUTE_NAMES[key as keyof PlayerAttributes];
-                return name ? `${name} +${value}` : null;
-            })
-            .filter(Boolean);
-        return parts.length > 0 ? `Thuộc tính: ${parts.join(', ')}.` : '';
-    };
-
     const formatSection = (title: string, items: any[], formatter: (item: any) => string) => {
         if (items.length > 0) {
             result += `**${title}:**\n${items.map(item => `- ${formatter(item)}`).join('\n')}\n\n`;
         }
     };
 
-    formatSection("Vật Phẩm", data.initialItems, (item: InitialItem) =>
-        `Tên: ${item.name}, Số lượng: ${item.quantity}, Loại: ${item.itemType}${item.consumableType ? ` (${item.consumableType})` : ''}. Mô tả: ${item.description}. ${formatAttributes(item.attributes)} ${item.effectIds?.length ? `Hiệu ứng: ${item.effectIds.join(', ')}.` : ''}`
-    );
-     formatSection("Trang Bị", data.initialTrangBi, (item: InitialItem) =>
-        `Tên: ${item.name}, Số lượng: ${item.quantity}. Mô tả: ${item.description}. ${formatAttributes(item.attributes)} ${item.effectIds?.length ? `Hiệu ứng: ${item.effectIds.join(', ')}.` : ''}`
-    );
-    formatSection("Pháp Bảo", data.initialPhapBao, (item: InitialItem) =>
-        `Tên: ${item.name}, Số lượng: ${item.quantity}. Mô tả: ${item.description}. ${formatAttributes(item.attributes)} ${item.effectIds?.length ? `Hiệu ứng: ${item.effectIds.join(', ')}.` : ''}`
-    );
-    formatSection("Công Pháp", data.initialCongPhap, (skill: InitialCongPhap) =>
-        `Tên: ${skill.name}. Mô tả: ${skill.description}. ${formatAttributes(skill.attributes)} ${skill.effectIds?.length ? `Hiệu ứng: ${skill.effectIds.join(', ')}.` : ''}`
-    );
+    // TỐI ƯU: Xóa các vật phẩm, trang bị, công pháp khỏi prompt để giảm độ dài và tăng tốc độ xử lý của AI.
+    // Các vật phẩm này sẽ được logic game tự thêm vào, AI không cần biết trong giai đoạn khởi tạo.
+
     formatSection("NPC", data.initialNpcs, (npc: InitialNpc) =>
         `Tên: ${npc.name}. Mô tả: ${npc.description}. ${npc.relationship ? `Quan hệ: ${npc.relationship}.` : ''}`
     );
@@ -136,8 +116,10 @@ const formatInitialElements = (data: ScenarioData) => {
     return result.trim() === "Dựa vào các yếu tố dưới đây để lồng ghép vào câu chuyện và trạng thái khởi đầu của người chơi." ? "Không có yếu tố khởi đầu nào được chỉ định." : result;
 };
 
+
 // FIX: Added helper to build location hierarchy from flat list.
-const buildLocationPath = (locationId: string, allLocations: WorldLocation[]): WorldLocation[] => {
+const buildLocationPath = (locationId: string | null, allLocations: WorldLocation[]): WorldLocation[] => {
+    if (!locationId) return [];
     const path: WorldLocation[] = [];
     let current = allLocations.find(l => l.id === locationId);
     while (current) {
@@ -147,9 +129,57 @@ const buildLocationPath = (locationId: string, allLocations: WorldLocation[]): W
     return path;
 };
 
-export const generateScenario = async (setupData: ScenarioData): Promise<ScenarioResponse> => {
+interface InitialStoryResponse {
+    story: string;
+    initialQuest: Omit<Quest, 'status' | 'id'>;
+    initialEvent: CurrentEvent;
+    journalEntry: string;
+}
+
+const generateInitialStory = async (commonPromptParts: string): Promise<InitialStoryResponse> => {
+    const prompt = `${commonPromptParts}
+
+**YÊU CẦU TẠO GAME (PHẦN 1 - CỐT TRUYỆN):**
+1.  Dựa vào toàn bộ thông tin trên, viết một đoạn truyện giới thiệu ngắn gọn, hấp dẫn, lồng ghép các yếu tố khởi đầu một cách tự nhiên.
+2.  Tạo một nhiệm vụ ban đầu thuộc loại 'Cốt truyện'. Nhiệm vụ này PHẢI là bước khởi đầu cho Giai đoạn 1 của cốt truyện đã cho.
+3.  Tạo một sự kiện ban đầu để người chơi bắt đầu hành trình. Sự kiện này PHẢI tuân thủ quy tắc tạo 4 gợi ý chi tiết.
+4.  Từ đoạn truyện giới thiệu bạn vừa viết, hãy tạo một chuỗi 'journalEntry' tóm tắt RẤT NGẮN GỌN (5-50 từ) để làm nhật ký khởi đầu cho người chơi.
+`;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            story: { type: Type.STRING },
+            initialQuest: questSchemaWithoutId,
+            initialEvent: currentEventSchema,
+            journalEntry: { type: Type.STRING, description: "Tóm tắt RẤT NGẮN GỌN (5-50 từ) của 'story' để làm nhật ký đầu tiên." }
+        },
+        required: ['story', 'initialQuest', 'initialEvent', 'journalEntry']
+    };
+
+    return callGemini(prompt, schema);
+}
+
+const generateInitialBoard = async (setupData: ScenarioData): Promise<BoardSquare[]> => {
     const heThongRule = "Hệ thống (Bàn Tay Vàng) sẽ được kích hoạt bởi cơ chế game, không phải bởi một ô trên bàn cờ. Vì vậy, TUYỆT ĐỐI KHÔNG tạo ra ô 'Kỳ Ngộ' có tên 'Thiên Mệnh Thức Tỉnh' hoặc các sự kiện tương tự để kích hoạt Hệ Thống.";
     
+    const prompt = `Dựa trên độ khó game là '${setupData.difficulty}', hãy tạo một **Thiên Mệnh Bàn** (Destiny Board) ${BOARD_SIZE} ô.
+- Ô đầu tiên (ID 0) PHẢI là loại 'Khởi đầu' với mô tả như 'Vòng lặp nhân sinh mới'.
+- ${heThongRule}
+- Các ô còn lại hãy phân bố ngẫu nhiên.
+- Độ khó '${setupData.difficulty}' nên được phản ánh trong việc phân bố các ô (ví dụ: độ khó cao có nhiều ô 'Tai Ương', 'Xui Xẻo' hơn).
+- "description" của mỗi ô phải là tên của một biến cố vận mệnh, không phải tên một địa điểm.`;
+
+    const schema = {
+        type: Type.ARRAY,
+        items: boardSquareSchema
+    };
+
+    return callGemini(prompt, schema);
+}
+
+
+export const generateScenario = async (setupData: ScenarioData): Promise<ScenarioResponse> => {
     const adultContentRule = setupData.enableAdultContent
         ? "Bối cảnh có thể bao gồm các yếu tố trưởng thành, bạo lực và các quyết định đạo đức phức tạp."
         : "Giữ cho câu chuyện phù hợp với mọi lứa tuổi, tập trung vào yếu tố phiêu lưu và tu luyện.";
@@ -162,18 +192,19 @@ export const generateScenario = async (setupData: ScenarioData): Promise<Scenari
 
     let difficultyInstruction = '';
     switch (setupData.difficulty) {
+        case 'Cực dễ':
         case 'Dễ':
             difficultyInstruction = "Tạo ra một thế giới khởi đầu tương đối dễ dàng. Kẻ địch yếu hơn, tài nguyên phong phú hơn, các sự kiện may mắn xuất hiện thường xuyên hơn.";
             break;
         case 'Bình thường':
             difficultyInstruction = "Tạo ra một thế giới cân bằng về thử thách và cơ hội.";
             break;
+        case 'Cực khó':
         case 'Khó':
             difficultyInstruction = "Tạo ra một thế giới khắc nghiệt. Kẻ địch mạnh và thông minh hơn, tài nguyên khan hiếm, các sự kiện tai ương và thử thách xuất hiện thường xuyên hơn. Kỳ ngộ hiếm và nguy hiểm hơn.";
             break;
     }
 
-    // FIX: Correctly find starting location and build geographical context from the hierarchical `worldLocations` array.
     const startingLocation = setupData.startingLocationId
         ? setupData.worldLocations.find(loc => loc.id === setupData.startingLocationId)
         : null;
@@ -185,8 +216,7 @@ export const generateScenario = async (setupData: ScenarioData): Promise<Scenari
         startingGeographicalContext = `Câu chuyện PHẢI bắt đầu tại địa điểm sau: ${locationNames.join(' > ')}\nHãy mô tả bối cảnh ở đây một cách chi tiết trong đoạn truyện giới thiệu.`;
     }
 
-
-    const prompt = `Tạo một kịch bản bắt đầu hoàn chỉnh cho người chơi, dựa trên các thông tin sau:
+    const commonPromptParts = `Tạo một kịch bản bắt đầu hoàn chỉnh cho người chơi, dựa trên các thông tin sau:
 
 **THÔNG TIN NHÂN VẬT:**
 - Tên: ${setupData.playerName}
@@ -207,32 +237,21 @@ ${setupData.scenarioStages.slice(0, 5).map((stage, index) => `  - Giai đoạn $
 ${formatInitialElements(setupData)}
 
 **ĐỊA ĐIỂM KHỞI ĐẦU CỐT TRUYỆN:**
-${startingGeographicalContext}
+${startingGeographicalContext}`;
 
-**YÊU CẦU TẠO GAME:**
-1.  Dựa vào toàn bộ thông tin trên, viết một đoạn truyện giới thiệu ngắn gọn, hấp dẫn, lồng ghép các yếu tố khởi đầu một cách tự nhiên.
-2.  Tạo một **Thiên Mệnh Bàn** (Destiny Board) ${BOARD_SIZE} ô. Ô đầu tiên (ID 0) PHẢI là loại 'Khởi đầu' với mô tả như 'Vòng lặp nhân sinh mới'. ${heThongRule} Các ô còn lại hãy phân bố ngẫu nhiên, tạo một bàn cờ khó khăn và đa dạng với nhiều ô 'Ô Trống' và 'Tai Ương', hạn chế lặp lại các ô đặc biệt khác. Đặt các ô Cột mốc ở các vị trí quan trọng. Lưu ý quan trọng: "description" của mỗi ô phải là tên của một biến cố vận mệnh, không phải tên một địa điểm.
-3.  Tạo một nhiệm vụ ban đầu thuộc loại 'Cốt truyện'. Nhiệm vụ này **PHẢI** là bước khởi đầu cho **Giai đoạn 1** của cốt truyện đã cho. Phần thưởng và mô tả phải dựa trên các Yếu tố khởi đầu nếu có liên quan.
-4.  Tạo một sự kiện ban đầu để người chơi bắt đầu hành trình. Sự kiện này PHẢI tuân thủ quy tắc tạo 4 gợi ý chi tiết.
-5.  Tạo ra Giai Đoạn Thế Giới (World Phase) đầu tiên, tên là 'Hồng Hoang Sơ Khai', bao gồm mô tả và hiệu ứng của nó.
-6.  Lưu ý: Thiên Mệnh Bàn sẽ bắt đầu ở trạng thái bị ẩn. Sự kiện và nhiệm vụ ban đầu không nên đề cập đến việc người chơi đang đứng trên bàn cờ hoặc lắc xúc xắc. AI sẽ kích hoạt nó sau thông qua diễn biến câu chuyện.
-7.  **QUAN TRỌNG:** Từ đoạn truyện giới thiệu bạn vừa viết, hãy tạo một chuỗi 'journalEntry' tóm tắt RẤT NGẮN GỌN (5-50 từ) để làm nhật ký khởi đầu cho người chơi.`;
-
-    const schema = {
-        type: Type.OBJECT,
-        properties: {
-            story: { type: Type.STRING },
-            board: { type: Type.ARRAY, items: boardSquareSchema, minItems: BOARD_SIZE, maxItems: BOARD_SIZE },
-            initialQuest: questSchemaWithId,
-            initialEvent: currentEventSchema,
-            worldPhase: worldPhaseSchema,
-            journalEntry: { type: Type.STRING, description: "Tóm tắt RẤT NGẮN GỌN (5-50 từ) của 'story' để làm nhật ký đầu tiên." }
-        },
-        required: ['story', 'board', 'initialQuest', 'initialEvent', 'worldPhase', 'journalEntry']
+    const [storyResponse, board, worldPhase] = await Promise.all([
+        generateInitialStory(commonPromptParts),
+        generateInitialBoard(setupData),
+        generateWorldPhase("Hồng Hoang Sơ Khai")
+    ]);
+    
+    return {
+        ...storyResponse,
+        board,
+        worldPhase,
     };
-
-    return callGemini(prompt, schema);
 };
+
 
 export const generateNewBoard = async (player: Player, mapLevel: number): Promise<{story: string, board: BoardSquare[], newQuest: Omit<Quest, 'status' | 'id'>, initialEvent: CurrentEvent}> => {
     const prompt = `Người chơi '${player.name}' (tuổi ${player.age}, cấp ${player.level}, cảnh giới ${player.cultivationStage}) đã hoàn thành một vòng Thiên Mệnh Bàn và tiến vào một giai đoạn vận mệnh mới (cấp ${mapLevel}).
@@ -244,7 +263,7 @@ export const generateNewBoard = async (player: Player, mapLevel: number): Promis
         type: Type.OBJECT,
         properties: {
             story: { type: Type.STRING },
-            board: { type: Type.ARRAY, items: boardSquareSchema, minItems: BOARD_SIZE, maxItems: BOARD_SIZE },
+            board: { type: Type.ARRAY, items: boardSquareSchema },
             newQuest: questSchemaWithoutId,
             initialEvent: currentEventSchema
         },

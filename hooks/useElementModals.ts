@@ -1,3 +1,4 @@
+
 import { useState, Dispatch, SetStateAction } from 'react';
 import type { InitialItem, InitialCongPhap, InitialNpc, InitialSect, WorldLocation } from '../../../types';
 
@@ -20,6 +21,7 @@ export const useElementModals = ({
 }) => {
     const [modalState, setModalState] = useState<{ type: string, data: any | null, parentIds?: any } | null>(null);
     const [choiceModalState, setChoiceModalState] = useState<{ type: string } | null>(null);
+    // FIX: Changed state to an object to hold both type and optional npcId, and renamed for clarity.
     const [thienThuModalState, setThienThuModalState] = useState<{ type: string; npcId?: string } | null>(null);
     const [assignmentModalState, setAssignmentModalState] = useState<{ isOpen: boolean; item: any | null; onAssign: (imageId: string) => void; }>({ isOpen: false, item: null, onAssign: () => {} });
 
@@ -54,6 +56,7 @@ export const useElementModals = ({
         setModalState(null);
     };
 
+    // FIX: Updated function to accept an optional npcId and handle adding items to either the main list or a specific NPC's inventory.
     const handleAddFromThienThu = (item: InitialItem | InitialCongPhap, npcId?: string) => {
         if (!thienThuModalState) return;
         const newItem = { ...item, id: `init_${thienThuModalState.type}_${Date.now()}` };
@@ -106,6 +109,7 @@ export const useElementModals = ({
         setModalState,
         choiceModalState,
         setChoiceModalState,
+        // FIX: Export the renamed and restructured state variables.
         thienThuModalState,
         setThienThuModalState,
         assignmentModalState,

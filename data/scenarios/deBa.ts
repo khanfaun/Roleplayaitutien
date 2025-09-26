@@ -1,3 +1,5 @@
+
+
 import type { ScenarioStage, InitialItem, InitialCongPhap, InitialNpc, InitialSect, WorldLocation, Rule, CultivationTier, MinorRealm } from '../../types';
 import { DEBA_5_MINOR_REALMS } from './helpers';
 
@@ -27,7 +29,8 @@ export const DEBA_CONG_PHAP: InitialCongPhap[] = [
 ];
 export const DEBA_NPCS: InitialNpc[] = [];
 export const DEBA_SECTS: InitialSect[] = [
-    { id: 'tay_nhan_co_phai', name: "Tẩy Nhan Cổ Phái", alignment: 'Trung Lập', description: "Một Đế thống tiên môn đã từng huy hoàng dưới thời Minh Nhân Tiên Đế, nay đã sa sút không phanh." }
+// FIX: Add missing properties `ranks`, `facilities`, and `treasury` to conform to the InitialSect type.
+    { id: 'tay_nhan_co_phai', name: "Tẩy Nhan Cổ Phái", alignment: 'Trung Lập', description: "Một Đế thống tiên môn đã từng huy hoàng dưới thời Minh Nhân Tiên Đế, nay đã sa sút không phanh.", ranks: [], facilities: [], treasury: {} }
 ];
 export const DEBA_WORLD_LOCATIONS: WorldLocation[] = [];
 const DEBA_CULTIVATION_SYSTEM_DATA: CultivationTier[] = [

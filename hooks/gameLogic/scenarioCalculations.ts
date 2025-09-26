@@ -1,3 +1,5 @@
+
+
 import type { Player, CultivationTier, MajorRealm, MinorRealm, PlayerAttributes, GameDifficulty, NguHanhType } from '../../types';
 import { INITIAL_PLAYER_STATS } from '../../constants';
 import { DESTINY_DEFINITIONS } from '../../data/effects';
@@ -64,11 +66,14 @@ export const calculatePlayerStatsForCultivation = (playerState: Player, system: 
                 for (const [key, value] of Object.entries(destiny.effects.primaryStatChange)) {
                      if (value !== undefined) {
                          const statKey = key as keyof Player;
-// FIX: Cast `value` to number to resolve unsafe arithmetic operation error.
-                         (newPlayer[statKey] as number) += (value as number);
-                         if (key === 'maxHp') newPlayer.hp = newPlayer.maxHp;
-                         if (key === 'maxStamina') newPlayer.stamina = newPlayer.maxStamina;
-                         if (key === 'maxMentalState') newPlayer.mentalState = newPlayer.maxMentalState;
+// FIX: Cast `value` to number and check if player stat is a number to resolve unsafe arithmetic operation error.
+                         const playerStat = newPlayer[statKey];
+                         if (typeof playerStat === 'number') {
+                             (newPlayer[statKey] as number) = playerStat + (value as number);
+                             if (key === 'maxHp') newPlayer.hp = newPlayer.maxHp;
+                             if (key === 'maxStamina') newPlayer.stamina = newPlayer.maxStamina;
+                             if (key === 'maxMentalState') newPlayer.mentalState = newPlayer.maxMentalState;
+                         }
                      }
                 }
             }

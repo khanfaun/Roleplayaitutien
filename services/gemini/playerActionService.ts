@@ -36,7 +36,10 @@ const getSectDisplayName = (sect: InitialSect, allSects: InitialSect[]): string 
 };
 
 export const processPlayerAction = async (gameState: GameState, action: string, isFullContextTurn: boolean): Promise<ActionOutcome> => {
-    const { player, quests, inventory, currentEvent, tribulationEvent, thienDaoRules, aiRules, coreMemoryRules, journal, shortTermMemory, heThong, turnCounter, scenarioSummary, scenarioStages, isThienMenhBanActive, cultivationSystem, thienThu, worldData, inGameNpcs } = gameState;
+    // FIX: Removed `isThienMenhBanActive` from destructuring as it does not exist on GameState.
+    const { player, quests, inventory, currentEvent, tribulationEvent, thienDaoRules, aiRules, coreMemoryRules, journal, shortTermMemory, heThong, turnCounter, scenarioSummary, scenarioStages, cultivationSystem, thienThu, worldData, inGameNpcs } = gameState;
+    // FIX: Derived `isThienMenhBanActive` from the correct state property.
+    const isThienMenhBanActive = heThong.unlockedFeatures.includes('thienMenhBan');
     
     const allRealms = cultivationSystem.flatMap(tier => tier.realms).sort((a, b) => a.rank - b.rank);
 
@@ -79,7 +82,6 @@ export const processPlayerAction = async (gameState: GameState, action: string, 
         return null;
     };
     
-    // FIX: Rebuilt geographical context generation using the hierarchical `worldLocations`.
     const locationPath = buildLocationPath(player.currentLocationId, worldData.worldLocations);
     const currentLocation = locationPath.length > 0 ? locationPath[locationPath.length - 1] : null;
     const pathString = locationPath.map(l => l.name).join(' > ');
@@ -112,7 +114,7 @@ QUY TẮC KHOẢNG CÁCH: Di chuyển giữa các địa điểm cùng cấp b�
     const factionRelationshipsContext = formatRelationships(worldData.initialSects);
 
     const npcsAtLocation = inGameNpcs.filter(npc => 
-        npc.currentLocationId === player.currentLocationId && npc.name !== player.name
+        npc.currentLocationId === player.currentLocationId && npc.id !== player.name // Assuming player name is not an NPC id
     );
     
     const npcsInSceneContext = npcsAtLocation.map(npc => ({
@@ -136,7 +138,6 @@ QUY TẮC KHOẢNG CÁCH: Di chuyển giữa các địa điểm cùng cấp b�
         attributes: npc.attributes
     }));
 
-    // The context object contains all player/world state information for the AI.
     const context = {
         player: {
             name: player.name,
@@ -224,91 +225,79 @@ Hành động của người chơi là: "${action}".
         -   **Trọng thương:** PHẢI trả về các giá trị \`hpChange\` và \`mentalStateChange\` **âm** đáng kể. Đồng thời, thêm trạng thái 'heavily_wounded' với duration hợp lý.
         -   **Tụt giảm tu vi:** PHẢI trả về một giá trị \`expChange\` **âm**. Mức kinh nghiệm mất đi phải tương ứng với mức độ thất bại (thất bại càng thảm, mất càng nhiều).
 ${qualityInstructions}
-4.  **QUAN TRỌNG NHẤT: SỰ KIỆN KẾ TIẾP (\`nextEvent\`)**
-    -   **NẾU ĐỘT PHÁ THÀNH CÔNG, BẠN BẮT BUỘC PHẢI TẠO RA MỘT \`nextEvent\` MỚI.**
+4.  **QUAN TRỌNG NHẤT: SỰ KIỆN KẾ TIẾP (\`nextEvent\` và các gợi ý)**
+    -   **NẾU ĐỘT PHÁ THÀNH CÔNG, BẠN BẮT BUỘC PHẢI TẠO RA MỘT \`nextEvent.description\` MỚI và 4 gợi ý hành động mới.**
     -   **VIỆC ĐỂ \`nextEvent\` LÀ \`null\` SAU KHI THÀNH CÔNG LÀ MỘT LỖI NGHIÊM TRỌNG VÀ KHÔNG ĐƯỢỢC PHÉP XẢY RA.**
     -   Sự kiện này phải tiếp nối câu chuyện, liên quan đến cảnh giới mới. Các ví dụ tốt: "Năng lượng đột phá của ngươi làm kinh động một yêu thú cường đại gần đó, nó đang lao tới!", "Cảnh giới mới giúp ngươi cảm nhận được một bí cảnh vừa mở ra ở phía xa."
-    -   \`nextEvent\` PHẢI tuân thủ quy tắc tạo 4 gợi ý chi tiết.
 5.  \`outcomeDescription\` phải mô tả diễn biến thiên kiếp một cách kịch tính.
 `;
     }
 
-    const commonPromptEnding = `**QUY TẮC XỬ LÝ:**
-1.  **QUAN TRỌNG NHẤT:** Trường \`outcomeDescription\` là phần tường thuật CỐT LÕI của trò chơi. Bạn BẮT BUỘC phải viết một đoạn văn chi tiết, hấp dẫn để mô tả kết quả hành động của người chơi. Đoạn văn này PHẢI có sự liên kết chặt chẽ với các sự kiện trong bối cảnh. Nếu trường này trống, câu chuyện sẽ không thể tiếp diễn.
-2.  Kết quả phải tuân thủ tuyệt đối **Thiên Đạo**, **Bộ Nhớ Cốt Lõi** và **Quy Tắc AI**.
-3.  **LUÔN LUÔN tạo ra một sự kiện tiếp theo (\`nextEvent\`).** Sự kiện này PHẢI tuân thủ quy tắc tạo 4 gợi ý chi tiết. Nếu không có hành động nào đặc biệt, hãy tạo ra các gợi ý chung chung như 'Thiền định tại chỗ (Hồi phục thể lực)', 'Quan sát xung quanh (Có thể phát hiện điều gì đó)', 'Tiếp tục tu luyện công pháp (Tăng kinh nghiệm)', và 'Kiểm tra túi đồ (Sắp xếp lại vật phẩm)'.
-4.  **\`journalEntry\`**: **BẮT BUỘC:** Sau khi viết xong \`outcomeDescription\`, hãy tóm tắt nó thành một câu RẤT NGẮN GỌN (5-50 từ) trong \`journalEntry\`. **CHỈ ghi nhận sự kiện chính**, không mô tả cảnh vật hay cảm xúc lan man. Ví dụ: "Đánh bại Hắc Hùng, nhận được Hắc Hùng Đảm và 50 kinh nghiệm." hoặc "Gia nhập Thanh Vân Môn sau khi hoàn thành thử thách của trưởng lão."
-5.  **Kiểm tra Nhiệm vụ Hệ thống:** Kiểm tra xem hành động của người chơi có hoàn thành điều kiện của bất kỳ Nhiệm vụ Hệ Thống nào không, bao gồm cả nhiệm vụ chính và mục tiêu ẩn (nếu có và chưa hoàn thành). Cập nhật trạng thái trong \`heThongQuestUpdates\` nếu cần.
-6.  **Quản lý Trạng thái:** Dựa vào diễn biến, thêm hoặc bớt trạng thái cho nhân vật. Ví dụ: bị trúng độc sau khi chiến đấu, hãy thêm \`{ "id": "poisoned", "duration": 5 }\` vào \`newStatusEffects\`. Nếu một trạng thái được chữa khỏi, thêm ID của nó vào \`removeStatusEffectIds\`.`;
+    const commonPromptEnding = `**YÊU CẦU ĐẦU RA:**
+Dựa vào toàn bộ bối cảnh và hành động của người chơi, hãy tạo ra một phản hồi JSON duy nhất tuân thủ schema đã cung cấp.
+- **\`outcomeDescription\`**: Viết một đoạn văn chi tiết, hấp dẫn để mô tả kết quả hành động.
+- **\`nextEvent\`**: Mô tả bối cảnh cho sự kiện tiếp theo và cung cấp chính xác 4 lựa chọn hành động trong mảng 'options'.
+- **\`journalEntry\`**: Tóm tắt \`outcomeDescription\` thành một câu RẤT NGẮN GỌN (5-50 từ).
+- **Cập nhật trạng thái:** Cập nhật các nhiệm vụ, chỉ số, trạng thái của người chơi và NPC một cách logic.`;
 
     const formattedThienThuData = formatThienThuDataForPrompt(thienThu);
-
-    const stringJsonInstruction = `**YÊU CẦU ĐỊNH DẠNG ĐẦU RA (CỰC KỲ QUAN TRỌNG):**
-Toàn bộ phản hồi của bạn BẮT BUỘC phải là một chuỗi JSON hợp lệ. KHÔNG được thêm bất kỳ văn bản giải thích, lời chào, hay các dấu markdown (như \`\`\`json) nào vào đầu hoặc cuối phản hồi. Phản hồi phải bắt đầu bằng '{' và kết thúc bằng '}'. Cấu trúc của đối tượng JSON phải tuân theo schema đã được cung cấp trong hướng dẫn hệ thống của bạn.`;
-
 
     if (isFullContextTurn) {
         const recentJournalEntries = journal.slice(-10).map(j => `Lượt ${j.turn}: ${j.text}`);
         const historicalJournalEntries = journal.slice(0, -10).reverse().map(j => `Lượt ${j.turn}: ${j.text}`);
-        const prompt = `${stringJsonInstruction}\n\n${tribulationInstructions}
-Bạn là Quản Trò AI. Đây là một lượt có BỐI CẢNH ĐẦY ĐỦ. Bạn có thể thấy toàn bộ lịch sử.
-**YÊU CẦU TUYỆT ĐỐI: BẠN PHẢI TUÂN THỦ QUY TRÌNH ĐỌC VÀ XỬ LÝ SAU ĐÂY THEO ĐÚNG THỨ TỰ:**
-
+        const prompt = `${tribulationInstructions}
+Bạn là Quản Trò AI. Đây là một lượt có BỐI CẢNH ĐẦY ĐỦ.
 **BƯỚC 1: ĐỌC LUẬT LỆ**
-*   **Thiên Đạo (Luật Trời):** ${JSON.stringify(thienDaoRules.map(r => r.text))}
-*   **BỘ NHỚ CỐT LÕI (SỰ THẬT BẤT BIẾN - TUYỆT ĐỐI TUÂN THỦ):** ${JSON.stringify(coreMemoryRules.map(r => r.text))}
-*   **Quy Tắc AI (Luật GM):** ${JSON.stringify(aiRules.map(r => r.text))}
+*   **Thiên Đạo:** ${JSON.stringify(thienDaoRules.map(r => r.text))}
+*   **BỘ NHỚ CỐT LÕI (BẤT BIẾN):** ${JSON.stringify(coreMemoryRules.map(r => r.text))}
+*   **Quy Tắc AI:** ${JSON.stringify(aiRules.map(r => r.text))}
 
 **BƯỚC 2: ĐỌC DỮ LIỆU THIÊN THƯ (VẬT PHẨM TỒN TẠI TRONG THẾ GIỚI)**
 *   **Danh sách vật phẩm, trang bị, pháp bảo, công pháp có sẵn:** ${formattedThienThuData}
-*   **QUY TẮC BẮT BUỘC:** Khi tạo \`newItem\`, bạn PHẢI chọn một vật phẩm có sẵn từ danh sách này bằng cách sao chép chính xác 'name', 'description', và các thuộc tính khác của nó. TUYỆT ĐỐI KHÔNG được tự bịa ra vật phẩm mới. Ngoại lệ duy nhất là 'Vật phẩm Nhiệm vụ' (category: 'Nhiệm vụ') có thể được tạo ra khi cần thiết cho cốt truyện.
+*   **QUY TẮC:** Khi tạo \`newItem\`, bạn PHẢI chọn một vật phẩm có sẵn từ danh sách này.
 
-**BƯỚC 3: PHÂN TÍCH BỐI CẢNH CỐT TRUYỆN**
-*   **Tóm Tắt Kịch Bản Chính:** ${scenarioSummary}
-*   **Các Giai Đoạn Cốt Truyện (Tối đa 15 giai đoạn đầu):** ${JSON.stringify(scenarioStages.slice(0, 15).map(s => s.text))}
-*   **Yêu cầu:** Bạn phải xác định câu chuyện đang ở giai đoạn nào dựa trên nhật ký và các sự kiện đã xảy ra, sau đó đảm bảo các sự kiện bạn tạo ra phải phù hợp với giai đoạn hiện tại hoặc dẫn dắt hợp lý đến giai đoạn tiếp theo. TUYỆT ĐỐI KHÔNG quay ngược giai đoạn (ví dụ: đang ở giai đoạn 3 lại tạo sự kiện của giai đoạn 1).
+**BƯỚC 3: PHÂN TÍCH CỐT TRUYỆN**
+*   **Tóm Tắt Kịch Bản:** ${scenarioSummary}
+*   **Các Giai Đoạn Cốt Truyện:** ${JSON.stringify(scenarioStages.slice(0, 15).map(s => s.text))}
 
-**BƯỚC 4: PHÂN TÍCH BỐI CẢNH LỊCH SỬ**
-*   **10 Diễn Biến Gần Nhất (Nhật Ký):** ${JSON.stringify(recentJournalEntries)}
-*   **Lịch sử xa hơn (từ mới đến cũ, không bao gồm 10 diễn biến gần nhất):** ${JSON.stringify(historicalJournalEntries)}
+**BƯỚC 4: PHÂN TÍCH LỊCH SỬ**
+*   **10 Diễn Biến Gần Nhất:** ${JSON.stringify(recentJournalEntries)}
+*   **Lịch sử xa hơn:** ${JSON.stringify(historicalJournalEntries)}
 
 **BƯỚC 5: PHÂN TÍCH BỐI CẢNH HIỆN TẠI**
-*   **Toàn Bộ Trạng Thái Game (Đạo hữu, động phủ, túi đồ, môn phái, nhiệm vụ, v.v.):** ${JSON.stringify(context)}
+*   **Toàn Bộ Trạng Thái Game:** ${JSON.stringify(context)}
 
 **BƯỚC 6: XỬ LÝ HÀNH ĐỘNG**
 *   **Hành Động Người Chơi:** "${action}"
 
 ${commonPromptEnding}`;
-        return callGemini(prompt, actionOutcomeSchema, { forceStringOutput: true });
+        return callGemini(prompt, actionOutcomeSchema);
     } else {
         const shortTermHistory = shortTermMemory.map(j => `Lượt ${j.turn}: ${j.text}`);
-        const prompt = `${stringJsonInstruction}\n\n${tribulationInstructions}
-Bạn là Quản Trò AI. Đây là một lượt có BỐI CẢNH RÚT GỌN. Bạn chỉ có trí nhớ ngắn hạn về vài sự kiện gần nhất.
-**YÊU CẦU TUYỆT ĐỐI: BẠN PHẢI TUÂN THỦ QUY TRÌNH ĐỌC VÀ XỬ LÝ SAU ĐÂY THEO ĐÚNG THỨ TỰ:**
-
-**BƯỚC 1: ĐỌC LUẬT LỆ (LUÔN ĐỌC)**
-*   **Thiên Đạo (Luật Trời):** ${JSON.stringify(thienDaoRules.map(r => r.text))}
-*   **BỘ NHỚ CỐT LÕI (SỰ THẬT BẤT BIẾN - TUYỆT ĐỐI TUÂN THỦ):** ${JSON.stringify(coreMemoryRules.map(r => r.text))}
-*   **Quy Tắc AI (Luật GM):** ${JSON.stringify(aiRules.map(r => r.text))}
+        const prompt = `${tribulationInstructions}
+Bạn là Quản Trò AI. Đây là một lượt có BỐI CẢNH RÚT GỌN.
+**BƯỚC 1: ĐỌC LUẬT LỆ**
+*   **Thiên Đạo:** ${JSON.stringify(thienDaoRules.map(r => r.text))}
+*   **BỘ NHỚ CỐT LÕI (BẤT BIẾN):** ${JSON.stringify(coreMemoryRules.map(r => r.text))}
+*   **Quy Tắc AI:** ${JSON.stringify(aiRules.map(r => r.text))}
 
 **BƯỚC 2: ĐỌC DỮ LIỆU THIÊN THƯ (VẬT PHẨM TỒN TẠI TRONG THẾ GIỚI)**
 *   **Danh sách vật phẩm, trang bị, pháp bảo, công pháp có sẵn:** ${formattedThienThuData}
-*   **QUY TẮC BẮT BUỘC:** Khi tạo \`newItem\`, bạn PHẢI chọn một vật phẩm có sẵn từ danh sách này bằng cách sao chép chính xác 'name', 'description', và các thuộc tính khác của nó. TUYỆT ĐỐI KHÔNG được tự bịa ra vật phẩm mới. Ngoại lệ duy nhất là 'Vật phẩm Nhiệm vụ' (category: 'Nhiệm vụ') có thể được tạo ra khi cần thiết cho cốt truyện.
+*   **QUY TẮC:** Khi tạo \`newItem\`, bạn PHẢI chọn một vật phẩm có sẵn từ danh sách này.
 
-**BƯỚC 3: PHÂN TÍCH BỐI CẢNH CỐT TRUYỆN**
-*   **Tóm Tắt Kịch Bản Chính:** ${scenarioSummary}
-*   **Các Giai Đoạn Cốt Truyện (Tối đa 15 giai đoạn đầu):** ${JSON.stringify(scenarioStages.slice(0, 15).map(s => s.text))}
-*   **Yêu cầu:** Bạn phải xác định câu chuyện đang ở giai đoạn nào dựa trên nhật ký và các sự kiện đã xảy ra, sau đó đảm bảo các sự kiện bạn tạo ra phải phù hợp với giai đoạn hiện tại hoặc dẫn dắt hợp lý đến giai đoạn tiếp theo. TUYỆT ĐỐI KHÔNG quay ngược giai đoạn (ví dụ: đang ở giai đoạn 3 lại tạo sự kiện của giai đoạn 1).
+**BƯỚC 3: PHÂN TÍCH CỐT TRUYỆN**
+*   **Tóm Tắt Kịch Bản:** ${scenarioSummary}
+*   **Các Giai Đoạn Cốt Truyện:** ${JSON.stringify(scenarioStages.slice(0, 15).map(s => s.text))}
 
 **BƯỚC 4: PHÂN TÍCH BỐI CẢNH HIỆN TẠI VÀ TRÍ NHỚ NGẮN HẠN**
-*   **Toàn Bộ Trạng Thái Game Hiện Tại (Đạo hữu, túi đồ, nhiệm vụ, v.v.):** ${JSON.stringify(context)}
-*   **Diễn Biến Gần Đây (Trí nhớ ngắn hạn):** ${JSON.stringify(shortTermHistory)}
+*   **Toàn Bộ Trạng Thái Game Hiện Tại:** ${JSON.stringify(context)}
+*   **Diễn Biến Gần Đây:** ${JSON.stringify(shortTermHistory)}
 
 **BƯỚC 5: XỬ LÝ HÀNH ĐỘNG**
 *   **Hành Động Người Chơi:** "${action}"
 
 ${commonPromptEnding}`;
-        return callGemini(prompt, actionOutcomeSchema, { forceStringOutput: true });
+        return callGemini(prompt, actionOutcomeSchema);
     }
 };
 

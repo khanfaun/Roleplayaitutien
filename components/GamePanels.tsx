@@ -14,3 +14,5 @@ export { HeThongPanel, HeThongPanelContent } from './panels/HeThongPanel';
 export { ManagementPanelContent } from './panels/ManagementPanelContent';
 export { ThienThuPanelContent } from './panels/ThienThuPanelContent';
 export { WorldPanel } from './panels/WorldPanel';
+export { NpcPanelContent } from './panels/NpcPanel';
+export * from './panels/sect';

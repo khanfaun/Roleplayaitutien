@@ -4,7 +4,7 @@ export const boardSquareSchema = {
     type: Type.OBJECT,
     properties: {
         id: { type: Type.INTEGER },
-        type: { type: Type.STRING, enum: ['Sự kiện', 'May mắn', 'Xui xẻo', 'Cột mốc', 'Kỳ Ngộ', 'Tâm Ma', 'Nhân Quả', 'Thiên Cơ', 'Thử Luyện', 'Bế Quan', 'Hồng Trần', 'Linh Mạch', 'Pháp Bảo', 'Giao Dịch', 'Ô Trống', 'Tai Ương', 'Khởi đầu'] },
+        type: { type: Type.STRING, enum: ['Sự kiện', 'May mắn', 'Xui xẻo', 'Cột mốc', 'Kỳ Ngộ', 'Tâm Ma', 'Nhân Quả', 'Thiên Cơ', 'Thử Luyện', 'Bế Quan', 'Hồng Trần', 'Linh Mạch', 'Pháp Bảo', 'Giao Dịch', 'Ô Trống', 'Tai Ưng', 'Khởi đầu'] },
         description: { type: Type.STRING, description: "Tên của sự kiện định mệnh. Ví dụ: 'Kỳ Duyên Hiếm Có'." },
     },
     required: ['id', 'type', 'description']
@@ -39,8 +39,8 @@ const questRewardSchema = {
     properties: {
         description: { type: Type.STRING, description: "Mô tả phần thưởng." },
         expChange: { type: Type.NUMBER, nullable: true },
-        items: { type: Type.ARRAY, items: itemSchema, nullable: true, maxItems: 3 },
-        reputationChange: { ...reputationChangeSchema, maxItems: 3 },
+        items: { type: Type.ARRAY, items: itemSchema, nullable: true },
+        reputationChange: reputationChangeSchema,
         sectContributionChange: { type: Type.NUMBER, nullable: true }
     },
     required: ['description']
@@ -52,7 +52,7 @@ const questPenaltySchema = {
         description: { type: Type.STRING, description: "Mô tả hình phạt." },
         hpChange: { type: Type.NUMBER, nullable: true },
         mentalStateChange: { type: Type.NUMBER, nullable: true },
-        reputationChange: { ...reputationChangeSchema, maxItems: 3 }
+        reputationChange: reputationChangeSchema
     },
     required: ['description']
 };
@@ -88,7 +88,7 @@ const heThongQuestRewardSchema = {
     properties: {
         description: { type: Type.STRING },
         heThongPoints: { type: Type.INTEGER, nullable: true },
-        items: { type: Type.ARRAY, items: itemSchema, nullable: true, maxItems: 3 }
+        items: { type: Type.ARRAY, items: itemSchema, nullable: true }
     },
     required: ['description']
 };
@@ -135,7 +135,6 @@ export const recipeSchema = {
         description: { type: Type.STRING },
         required: {
             type: Type.ARRAY,
-            maxItems: 5,
             items: {
                 type: Type.OBJECT,
                 properties: {
@@ -162,7 +161,13 @@ export const currentEventSchema = {
     type: Type.OBJECT,
     properties: {
         description: { type: Type.STRING, description: "Mô tả sự kiện hiện tại." },
-        options: { type: Type.ARRAY, items: { type: Type.STRING }, minItems: 4, maxItems: 4, description: "Bốn lựa chọn hành động cho người chơi." }
+        options: {
+            type: Type.ARRAY,
+            description: "Chính xác 4 gợi ý hành động cho người chơi. Mỗi gợi ý là một chuỗi có kèm chú thích trong ngoặc đơn.",
+            minItems: 4,
+            maxItems: 4,
+            items: { type: Type.STRING }
+        }
     },
     required: ['description', 'options']
 };
@@ -187,11 +192,11 @@ export const actionOutcomeSchema = {
     type: Type.OBJECT,
     properties: {
         outcomeDescription: { type: Type.STRING, description: "Mô tả tường thuật kết quả hành động." },
-        hpChange: { type: Type.NUMBER, description: "Lượng HP thay đổi." },
-        expChange: { type: Type.NUMBER, description: "Lượng kinh nghiệm nhận được." },
-        spiritPowerChange: { type: Type.NUMBER, description: "Lượng linh lực thay đổi." },
-        staminaChange: { type: Type.NUMBER, description: "Số Thể Lực thay đổi (bắt buộc)." },
-        mentalStateChange: { type: Type.NUMBER, description: "Số Tâm Cảnh thay đổi (bắt buộc)." },
+        hpChange: { type: Type.NUMBER, description: "Lượng HP thay đổi (root-level)." },
+        expChange: { type: Type.NUMBER, description: "Lượng kinh nghiệm nhận được (root-level)." },
+        spiritPowerChange: { type: Type.NUMBER, description: "Lượng linh lực thay đổi (root-level)." },
+        staminaChange: { type: Type.NUMBER, description: "Số Thể Lực thay đổi (bắt buộc, root-level)." },
+        mentalStateChange: { type: Type.NUMBER, description: "Số Tâm Cảnh thay đổi (bắt buộc, root-level)." },
         daysToAdvance: { type: Type.INTEGER, description: "Luôn trả về 0." },
         journalEntry: { type: Type.STRING, nullable: false, description: "Tóm tắt RẤT NGẮN GỌN (5-50 từ) của 'outcomeDescription'." },
         newItem: { ...itemSchema, nullable: true },
@@ -200,7 +205,6 @@ export const actionOutcomeSchema = {
         questUpdates: {
             type: Type.ARRAY,
             nullable: true,
-            maxItems: 1,
             description: "Cập nhật nhiệm vụ.",
             items: {
                 type: Type.OBJECT,
@@ -214,7 +218,6 @@ export const actionOutcomeSchema = {
         },
         reputationChange: {
             ...reputationChangeSchema,
-            maxItems: 1,
             description: "Thay đổi danh vọng.",
         },
         attributeChanges: playerAttributeChangesSchema,
@@ -243,7 +246,6 @@ export const actionOutcomeSchema = {
         heThongQuestUpdates: {
             type: Type.ARRAY,
             nullable: true,
-            maxItems: 1,
             items: {
                 type: Type.OBJECT,
                 properties: {
@@ -269,7 +271,6 @@ export const actionOutcomeSchema = {
         newStatusEffects: {
             type: Type.ARRAY,
             nullable: true,
-            maxItems: 1,
             description: "Thêm trạng thái mới cho người chơi.",
             items: {
                 type: Type.OBJECT,
@@ -283,64 +284,18 @@ export const actionOutcomeSchema = {
         removeStatusEffectIds: {
             type: Type.ARRAY,
             nullable: true,
-            maxItems: 1,
             description: "Gỡ bỏ trạng thái bằng ID.",
             items: { type: Type.STRING }
         },
         newLocationId: { type: Type.STRING, nullable: true, description: "ID của địa điểm mới mà người chơi di chuyển tới." },
-        npcUpdates: {
-            type: Type.ARRAY,
-            nullable: true,
-            maxItems: 1,
-            description: "Cập nhật trạng thái cho NPC.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    npcId: { type: Type.STRING, description: "ID của NPC." },
-                    updates: {
-                        type: Type.OBJECT,
-                        description: "Các chỉ số đã thay đổi.",
-                        properties: {
-                            hp: { type: Type.NUMBER, nullable: true },
-                            spiritPower: { type: Type.NUMBER, nullable: true },
-                            stamina: { type: Type.NUMBER, nullable: true },
-                            mentalState: { type: Type.NUMBER, nullable: true },
-                            attitudeTowardsPC: { type: Type.NUMBER, nullable: true, description: "Thái độ MỚI của NPC đối với người chơi." },
-                            newStatusEffects: {
-                                type: Type.ARRAY,
-                                nullable: true,
-                                maxItems: 1,
-                                description: "Thêm trạng thái mới cho NPC bằng ID và thời gian.",
-                                items: {
-                                    type: Type.OBJECT,
-                                    properties: {
-                                        id: { type: Type.STRING, description: "ID của trạng thái." },
-                                        duration: { type: Type.INTEGER, description: "Thời gian (số lượt)." }
-                                    },
-                                    required: ['id', 'duration']
-                                }
-                            },
-                            removeStatusEffectIds: {
-                                type: Type.ARRAY,
-                                nullable: true,
-                                maxItems: 1,
-                                description: "Gỡ bỏ trạng thái của NPC bằng ID.",
-                                items: { type: Type.STRING }
-                            }
-                        }
-                    }
-                },
-                required: ['npcId', 'updates']
-            }
-        },
         newlyDiscoveredIds: {
             type: Type.OBJECT,
             nullable: true,
             description: "Các ID của địa điểm, môn phái, hoặc NPC lần đầu tiên được đề cập trong câu chuyện.",
             properties: {
-                locations: { type: Type.ARRAY, nullable: true, maxItems: 1, items: { type: Type.STRING } },
-                sects: { type: Type.ARRAY, nullable: true, maxItems: 1, items: { type: Type.STRING } },
-                npcs: { type: Type.ARRAY, nullable: true, maxItems: 1, items: { type: Type.STRING } }
+                locations: { type: Type.ARRAY, nullable: true, items: { type: Type.STRING } },
+                sects: { type: Type.ARRAY, nullable: true, items: { type: Type.STRING } },
+                npcs: { type: Type.ARRAY, nullable: true, items: { type: Type.STRING } }
             }
         },
     },

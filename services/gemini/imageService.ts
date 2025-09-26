@@ -101,6 +101,11 @@ Trả về một đối tượng JSON có hai trường:
     return callGemini(prompt, schema);
 };
 
+// FIX: Add a type definition for the Gemini response in 'assignSingleImage' to resolve property access on an unknown type.
+interface AssignSingleImageResponse {
+    bestImageFileName: string;
+}
+
 export const assignSingleImage = async (
     item: { name: string, description: string, category: string },
     images: { fileName: string, tags: string[] }[]
@@ -130,7 +135,7 @@ export const assignSingleImage = async (
         required: ["bestImageFileName"]
     };
     
-    const result = await callGemini(prompt, schema);
+    const result = await callGemini<AssignSingleImageResponse>(prompt, schema);
     return result.bestImageFileName;
 };
 

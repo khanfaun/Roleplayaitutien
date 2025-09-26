@@ -1,74 +1,27 @@
-
 import type { GameState, ActionOutcome, CombatTurnOutcome, LogEntry, Player, Quest, HeThongQuest, BreakthroughReport, StatusEffect } from '../../types';
 import { FULL_CONTEXT_REFRESH_CYCLE } from '../../constants';
 import { STATUS_EFFECT_DEFINITIONS } from '../../data/effects';
 import { findRealmDetails, updatePlayerStatsForCultivation, calculateStatChanges } from './cultivation';
 
 type ReducerDeps = {
-    addLogEntry: (entry: LogEntry) => void;
     findRealmDetails: typeof findRealmDetails;
     updatePlayerStatsForCultivation: typeof updatePlayerStatsForCultivation;
     calculateStatChanges: typeof calculateStatChanges;
 }
 
 export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutcome, deps: ReducerDeps): GameState => {
-    const { addLogEntry } = deps;
+    let logEntries: LogEntry[] = [];
     let newPlayer = { ...prev.player };
     let newInventory = [...prev.inventory];
     let newQuests = [...prev.quests];
-    let newHeThongQuests = [...prev.heThong.quests];
+    let newHeThongState = { ...prev.heThong };
     let newCurrentEvent = outcome.nextEvent || null;
     let newCombatState = null;
     let newTribulationEvent = prev.tribulationEvent;
     let isDead = prev.isDead;
     let newBreakthroughReport: BreakthroughReport | null = null;
-    let newIsThienMenhBanActive = prev.isThienMenhBanActive;
     let newInGameNpcs = [...prev.inGameNpcs];
     let newDiscoveredIds = { ...prev.discoveredEntityIds };
-
-    if (outcome.npcUpdates) {
-        outcome.npcUpdates.forEach(update => {
-            const npcIndex = newInGameNpcs.findIndex(npc => npc.id === update.npcId);
-            if (npcIndex !== -1) {
-                const originalNpc = newInGameNpcs[npcIndex];
-                const updatedNpc = { ...originalNpc };
-                
-                // Apply simple stat updates
-                const { newStatusEffects, removeStatusEffectIds, ...simpleUpdates } = update.updates;
-                Object.assign(updatedNpc, simpleUpdates);
-
-                // Clamp stats to be within valid ranges
-                if (update.updates.hp !== undefined) updatedNpc.hp = Math.min(updatedNpc.maxHp, Math.max(0, updatedNpc.hp));
-                if (update.updates.spiritPower !== undefined) updatedNpc.spiritPower = Math.min(updatedNpc.maxSpiritPower, Math.max(0, updatedNpc.spiritPower));
-                if (update.updates.stamina !== undefined) updatedNpc.stamina = Math.min(updatedNpc.maxStamina, Math.max(0, updatedNpc.stamina));
-                if (update.updates.mentalState !== undefined) updatedNpc.mentalState = Math.min(updatedNpc.maxMentalState, Math.max(0, updatedNpc.mentalState));
-
-                // Handle status effects
-                let currentStatusEffects = [...updatedNpc.statusEffects];
-                if (removeStatusEffectIds) {
-                    currentStatusEffects = currentStatusEffects.filter(e => !removeStatusEffectIds.includes(e.id));
-                }
-                if (newStatusEffects) {
-                    newStatusEffects.forEach(newEffect => {
-                        const definition = STATUS_EFFECT_DEFINITIONS[newEffect.id];
-                        if (definition) {
-                            const fullEffect: StatusEffect = { ...definition, duration: newEffect.duration };
-                            const existingIndex = currentStatusEffects.findIndex(e => e.id === newEffect.id);
-                            if (existingIndex > -1) {
-                                currentStatusEffects[existingIndex] = fullEffect;
-                            } else {
-                                currentStatusEffects.push(fullEffect);
-                            }
-                        }
-                    });
-                }
-                updatedNpc.statusEffects = currentStatusEffects;
-                
-                newInGameNpcs[npcIndex] = updatedNpc;
-                addLogEntry({ type: 'system', content: `Trạng thái của [${updatedNpc.name}] đã thay đổi.` });
-            }
-        });
-    }
 
     if (outcome.newlyDiscoveredIds) {
         newDiscoveredIds.locations = [...new Set([...newDiscoveredIds.locations, ...(outcome.newlyDiscoveredIds.locations || [])])];
@@ -84,7 +37,7 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
 
     if (newPlayer.hp <= 0) {
         isDead = true;
-        addLogEntry({ type: 'system', content: "Sinh lực cạn kiệt, đạo đồ đã tận..." });
+        logEntries.push({ type: 'system', content: "Sinh lực cạn kiệt, đạo đồ đã tận..." });
     }
 
     newPlayer.exp += outcome.expChange;
@@ -104,7 +57,7 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
     
     if (outcome.newItem) {
         newInventory.push(outcome.newItem);
-        addLogEntry({ type: 'system', content: `Nhận được [${outcome.newItem.name}].` });
+        logEntries.push({ type: 'system', content: `Nhận được [${outcome.newItem.name}].` });
     }
     
     if (outcome.reputationChange) {
@@ -125,13 +78,13 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
         if (joinedSect) {
             newDiscoveredIds.sects = [...new Set([...newDiscoveredIds.sects, joinedSect.id])];
         }
-        addLogEntry({ type: 'system', content: `Gia nhập [${outcome.joinSect}] thành công!` });
+        logEntries.push({ type: 'system', content: `Gia nhập [${outcome.joinSect}] thành công!` });
     }
     
     if (outcome.newQuest) {
         const newQuest: Quest = { ...outcome.newQuest, id: `q_${Date.now()}`, status: 'Đang tiến hành' };
         newQuests.push(newQuest);
-        addLogEntry({ type: 'system', content: `Nhận nhiệm vụ mới: [${newQuest.title}].` });
+        logEntries.push({ type: 'system', content: `Nhận nhiệm vụ mới: [${newQuest.title}].` });
     }
 
     if (outcome.questUpdates) {
@@ -141,8 +94,8 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
                 if(update.newStatus) {
                     newQuests[questIndex].status = update.newStatus;
                     const questTitle = newQuests[questIndex].title;
-                    if (update.newStatus === 'Hoàn thành') addLogEntry({ type: 'system', content: `Nhiệm vụ [${questTitle}] đã hoàn thành!` });
-                    else if (update.newStatus === 'Thất bại') addLogEntry({ type: 'system', content: `Nhiệm vụ [${questTitle}] đã thất bại!` });
+                    if (update.newStatus === 'Hoàn thành') logEntries.push({ type: 'system', content: `Nhiệm vụ [${questTitle}] đã hoàn thành!` });
+                    else if (update.newStatus === 'Thất bại') logEntries.push({ type: 'system', content: `Nhiệm vụ [${questTitle}] đã thất bại!` });
                 }
                 if(update.progressChange) newQuests[questIndex].progress = (newQuests[questIndex].progress || 0) + update.progressChange!;
             }
@@ -151,23 +104,32 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
 
     if (outcome.awakenHeThong && newPlayer.heThongStatus === 'inactive') {
         newPlayer.heThongStatus = 'active';
-        addLogEntry({ type: 'he_thong', content: `[Hệ Thống] đã thức tỉnh và liên kết với linh hồn của ngươi.`});
+        logEntries.push({ type: 'he_thong', content: `[Hệ Thống] đã thức tỉnh và liên kết với linh hồn của ngươi.`});
     }
 
     if (outcome.heThongPointsChange) newPlayer.heThongPoints += outcome.heThongPointsChange;
 
     if (outcome.newHeThongQuest) {
         const newQuest: HeThongQuest = { ...outcome.newHeThongQuest, id: `htq_${Date.now()}`, status: 'Đang tiến hành', hiddenObjective: outcome.newHeThongQuest.hiddenObjective ? { ...outcome.newHeThongQuest.hiddenObjective, completed: false } : undefined };
-        newHeThongQuests.push(newQuest);
-        addLogEntry({ type: 'he_thong', content: `Nhận nhiệm vụ mới: [${newQuest.title}].` });
+        newHeThongState.quests = [...newHeThongState.quests, newQuest];
+        logEntries.push({ type: 'he_thong', content: `Nhận nhiệm vụ mới: [${newQuest.title}].` });
     }
 
     if (outcome.heThongQuestUpdates) {
         outcome.heThongQuestUpdates.forEach(update => {
-            const questIndex = newHeThongQuests.findIndex(q => q.id === update.questId);
+            const questIndex = newHeThongState.quests.findIndex(q => q.id === update.questId);
             if (questIndex !== -1) {
-                if (update.newStatus) newHeThongQuests[questIndex].status = update.newStatus;
-                if (update.hiddenObjectiveCompleted && newHeThongQuests[questIndex].hiddenObjective) newHeThongQuests[questIndex].hiddenObjective!.completed = true;
+                if (update.newStatus) newHeThongState.quests[questIndex].status = update.newStatus;
+                if (update.hiddenObjectiveCompleted && newHeThongState.quests[questIndex].hiddenObjective) newHeThongState.quests[questIndex].hiddenObjective!.completed = true;
+                if (update.unlockSystemFeature) {
+                    const feature = update.unlockSystemFeature;
+                    if (!newHeThongState.unlockedFeatures.includes(feature)) {
+                        newHeThongState.unlockedFeatures = [...newHeThongState.unlockedFeatures, feature];
+                        let featureName = feature;
+                        if (feature === 'thienMenhBan') featureName = 'Thiên Mệnh Bàn';
+                        logEntries.push({ type: 'he_thong', content: `Đã mở khóa chức năng mới: [${featureName}]!` });
+                    }
+                }
             }
         });
     }
@@ -176,7 +138,7 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
     if (outcome.removeStatusEffectIds) {
         outcome.removeStatusEffectIds.forEach(idToRemove => {
             const removedEffect = currentStatusEffects.find(e => e.id === idToRemove);
-            if (removedEffect) addLogEntry({ type: 'status_effect', content: `Trạng thái [${removedEffect.name}] đã kết thúc.` });
+            if (removedEffect) logEntries.push({ type: 'status_effect', content: `Trạng thái [${(removedEffect as StatusEffect).name}] đã kết thúc.` });
         });
         currentStatusEffects = currentStatusEffects.filter(e => !outcome.removeStatusEffectIds?.includes(e.id));
     }
@@ -188,7 +150,7 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
                 const fullEffect: StatusEffect = { ...definition, duration: newEffect.duration };
                 if (existingIndex > -1) currentStatusEffects[existingIndex] = fullEffect;
                 else currentStatusEffects.push(fullEffect);
-                addLogEntry({ type: 'status_effect', content: `Nhận được trạng thái: [${definition.name}].` });
+                logEntries.push({ type: 'status_effect', content: `Nhận được trạng thái: [${definition.name}].` });
             }
         });
     }
@@ -213,7 +175,7 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
             
             newPlayer = updatedPlayer;
         } else {
-            addLogEntry({ type: 'system', content: "Đột phá thất bại! Cảnh giới bị tổn thương." });
+            logEntries.push({ type: 'system', content: "Đột phá thất bại! Cảnh giới bị tổn thương." });
         }
     }
     
@@ -222,16 +184,11 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
         newCurrentEvent = { description: `Đối mặt với ${outcome.combatTrigger.enemyName}!`, options: ["Tấn công bằng công pháp (Mạnh, tốn Linh Lực)", "Tấn công bằng pháp bảo (Nhanh, hiệu quả tùy pháp bảo)", "Phòng thủ (Giảm sát thương nhận vào)", "Bỏ chạy (Tỷ lệ thành công tùy đối thủ)"] };
     }
     
-    if (outcome.activateThienMenhBan && !prev.isThienMenhBanActive) {
-        newIsThienMenhBanActive = true;
-        addLogEntry({type: 'event', content: "Một cảm giác kỳ diệu nảy sinh trong tâm trí, dường như có thể nhìn thấy được dòng chảy của vận mệnh. [Thiên Mệnh Bàn] đã được kích hoạt!"});
-    }
-    
     if (outcome.newLocationId) {
         newPlayer.currentLocationId = outcome.newLocationId;
         const newLocation = prev.worldData.worldLocations.find(l => l.id === outcome.newLocationId);
         if (newLocation) {
-            addLogEntry({ type: 'system', content: `Đã di chuyển đến [${newLocation.name}].` });
+            logEntries.push({ type: 'system', content: `Đã di chuyển đến [${newLocation.name}].` });
             
             // Discover the new location and all its parents
             const toDiscover = [newLocation.id];
@@ -247,8 +204,8 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
     const turnIncrement = (prev.combatState && !newCombatState) ? 0 : 1;
     const newTurnCounter = prev.turnCounter + turnIncrement;
     
-    const newLogEntry = { type: 'ai_story' as const, content: outcome.outcomeDescription };
-    const newGameLog = [...prev.gameLog, newLogEntry];
+    logEntries.push({ type: 'ai_story' as const, content: outcome.outcomeDescription });
+    const newGameLog = [...prev.gameLog, ...logEntries];
 
     let newJournal = prev.journal;
     let newShortTermMemory = prev.shortTermMemory;
@@ -258,7 +215,7 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
         newShortTermMemory = [...prev.shortTermMemory, newJournalEntry].slice(-FULL_CONTEXT_REFRESH_CYCLE);
     }
 
-    return { ...prev, player: newPlayer, inventory: newInventory, quests: newQuests, currentEvent: newCurrentEvent, combatState: newCombatState, isDead: isDead, turnCounter: newTurnCounter, diceRolls: prev.diceRolls + (outcome.diceRollsChange || 0) + (newTurnCounter % 20 === 0 && turnIncrement > 0 ? 1 : 0), turnInCycle: (prev.turnInCycle + turnIncrement) % FULL_CONTEXT_REFRESH_CYCLE, heThong: { ...prev.heThong, quests: newHeThongQuests }, isAtBottleneck: isAtBottleneck, tribulationEvent: newTribulationEvent, breakthroughReport: newBreakthroughReport, isThienMenhBanActive: newIsThienMenhBanActive, gameLog: newGameLog.slice(-100), journal: newJournal, shortTermMemory: newShortTermMemory, inGameNpcs: newInGameNpcs, discoveredEntityIds: newDiscoveredIds };
+    return { ...prev, player: newPlayer, inventory: newInventory, quests: newQuests, currentEvent: newCurrentEvent, combatState: newCombatState, isDead: isDead, turnCounter: newTurnCounter, diceRolls: prev.diceRolls + (outcome.diceRollsChange || 0) + (newTurnCounter % 20 === 0 && turnIncrement > 0 ? 1 : 0), turnInCycle: (prev.turnInCycle + turnIncrement) % FULL_CONTEXT_REFRESH_CYCLE, heThong: newHeThongState, isAtBottleneck: isAtBottleneck, tribulationEvent: newTribulationEvent, breakthroughReport: newBreakthroughReport, gameLog: newGameLog.slice(-100), journal: newJournal, shortTermMemory: newShortTermMemory, inGameNpcs: newInGameNpcs, discoveredEntityIds: newDiscoveredIds };
 };
 
 export const processCombatTurnOutcomeReducer = (prev: GameState, outcome: CombatTurnOutcome, deps: { addLogEntry: (entry: LogEntry) => void }): GameState => {

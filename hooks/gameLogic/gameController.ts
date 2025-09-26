@@ -1,5 +1,9 @@
+
+
 import * as geminiService from '../../services/geminiService';
 import type { GameState, LogEntry, ActionOutcome, CombatTurnOutcome } from '../../types';
+// FIX: Import types directly from 'react' to resolve 'React' namespace errors.
+import type { Dispatch, SetStateAction } from 'react';
 
 // --- Dependencies for this module ---
 type GameStateDeps = {
@@ -7,10 +11,10 @@ type GameStateDeps = {
 };
 
 type Setters = {
-    setGameState: React.Dispatch<React.SetStateAction<GameState>>;
-    setIsRolling?: React.Dispatch<React.SetStateAction<boolean>>;
-    setDiceFace?: React.Dispatch<React.SetStateAction<number>>;
-    setPlayerInput?: React.Dispatch<React.SetStateAction<string>>;
+    setGameState: Dispatch<SetStateAction<GameState>>;
+    setIsRolling?: Dispatch<SetStateAction<boolean>>;
+    setDiceFace?: Dispatch<SetStateAction<number>>;
+    setPlayerInput?: Dispatch<SetStateAction<string>>;
 };
 
 type Callbacks = {
@@ -31,8 +35,14 @@ export const handleDiceRollLogic = async (
 
     if (gameState.diceRolls <= 0 || gameState.isLoading || !setIsRolling || !setDiceFace) return;
 
+    // FIX: Replaced non-existent `isThienMenhBanActive` with a check on `heThong.unlockedFeatures`.
+    if (!gameState.heThong.unlockedFeatures.includes('thienMenhBan')) {
+        addLogEntry({ type: 'system', content: 'Thiên Mệnh Bàn chưa được kích hoạt, không thể gieo vận mệnh.' });
+        return;
+    }
+
     setIsRolling(true);
-    setGameState(prev => ({ ...prev, isLoading: true, currentEvent: null }));
+    setGameState(prev => ({ ...prev, isLoading: true, currentEvent: null, diceRolls: prev.diceRolls - 1 }));
 
     const roll = Math.floor(Math.random() * 6) + 1;
     

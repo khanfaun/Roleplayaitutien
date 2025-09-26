@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import type { GameState, Rule, JournalEntry, ScenarioStage } from '../../types';
-import { PlusCircleIcon, PencilIcon, TrashIcon, CheckIcon, XIcon } from '../Icons';
+import { PlusCircleIcon, PencilIcon, TrashIcon, CheckIcon, XIcon, BuildingLibraryIcon } from '../Icons';
+import { ThienThuPanelContent } from '../GamePanels';
 
 const EditableList = ({ title, items, onUpdate, onAdd, onDelete, itemDisplay = 'text' }: { title: string, items: any[], onUpdate: (id: string, text: string) => void, onAdd: (text: string) => void, onDelete: (id: string) => void, itemDisplay?: 'text' | 'journal' }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -88,10 +89,12 @@ export const ManagementPanelContent: React.FC<{
     handleLoadGame: (file: File) => void;
     handleGoHome: () => void;
     handleClearApiKey: () => void;
+    thienThu: GameState['thienThu'];
+    onItemImageChange: (itemType: 'vatPhamTieuHao' | 'trangBi' | 'phapBao' | 'congPhap', itemId: string, imageId: string) => void;
 }> = ({
-    gameState, onRulesChange, onJournalChange, onScenarioUpdate, handleSaveGame, handleLoadGame, handleGoHome, handleClearApiKey
+    gameState, onRulesChange, onJournalChange, onScenarioUpdate, handleSaveGame, handleLoadGame, handleGoHome, handleClearApiKey, thienThu, onItemImageChange
 }) => {
-    const [activeTab, setActiveTab] = useState('thaoTac');
+    const [activeSubTab, setActiveSubTab] = useState('thaoTac');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleLoadClick = () => {
@@ -111,6 +114,7 @@ export const ManagementPanelContent: React.FC<{
         { id: 'ai', label: 'Luật AI' },
         { id: 'coreMemory', label: 'Bộ Nhớ Cốt Lõi' },
         { id: 'nhatKy', label: 'Nhật Ký' },
+        { id: 'thienThu', label: 'Thiên Thư' },
     ];
 
     return (
@@ -119,15 +123,15 @@ export const ManagementPanelContent: React.FC<{
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex-1 p-2 text-xs font-semibold transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-slate-700/50 text-yellow-200' : 'text-slate-300 hover:bg-slate-700/30'}`}
+                        onClick={() => setActiveSubTab(tab.id)}
+                        className={`flex-1 p-2 text-xs font-semibold transition-colors whitespace-nowrap ${activeSubTab === tab.id ? 'bg-slate-700/50 text-yellow-200' : 'text-slate-300 hover:bg-slate-700/30'}`}
                     >
                         {tab.label}
                     </button>
                 ))}
             </div>
             <div className="p-4 text-sm overflow-y-auto styled-scrollbar flex-1">
-                {activeTab === 'thaoTac' && (
+                {activeSubTab === 'thaoTac' && (
                     <div className="space-y-4">
                         <div>
                             <h3 className="text-lg font-bold text-yellow-300">Thao Tác Game</h3>
@@ -148,7 +152,7 @@ export const ManagementPanelContent: React.FC<{
                         </div>
                     </div>
                 )}
-                {activeTab === 'thienDao' && (
+                {activeSubTab === 'thienDao' && (
                      <EditableList
                         title="Luật Thiên Đạo"
                         items={gameState.thienDaoRules}
@@ -157,7 +161,7 @@ export const ManagementPanelContent: React.FC<{
                         onDelete={id => onRulesChange('thienDao', gameState.thienDaoRules.filter(r => r.id !== id))}
                     />
                 )}
-                {activeTab === 'ai' && (
+                {activeSubTab === 'ai' && (
                     <EditableList
                         title="Luật AI"
                         items={gameState.aiRules}
@@ -166,7 +170,7 @@ export const ManagementPanelContent: React.FC<{
                         onDelete={id => onRulesChange('ai', gameState.aiRules.filter(r => r.id !== id))}
                     />
                 )}
-                {activeTab === 'coreMemory' && (
+                {activeSubTab === 'coreMemory' && (
                     <EditableList
                         title="Bộ Nhớ Cốt Lõi"
                         items={gameState.coreMemoryRules}
@@ -175,7 +179,7 @@ export const ManagementPanelContent: React.FC<{
                         onDelete={id => onRulesChange('coreMemory', gameState.coreMemoryRules.filter(r => r.id !== id))}
                     />
                 )}
-                {activeTab === 'nhatKy' && (
+                {activeSubTab === 'nhatKy' && (
                     <EditableList
                         title="Nhật Ký"
                         items={[...gameState.journal].reverse()}
@@ -184,6 +188,11 @@ export const ManagementPanelContent: React.FC<{
                         onAdd={text => onJournalChange([...gameState.journal, { id: `j_${Date.now()}`, turn: gameState.turnCounter, text }])}
                         onDelete={id => onJournalChange(gameState.journal.filter(j => j.id !== id))}
                     />
+                )}
+                {activeSubTab === 'thienThu' && (
+                    <div className="h-full">
+                        <ThienThuPanelContent thienThu={thienThu} onItemImageChange={onItemImageChange} />
+                    </div>
                 )}
             </div>
         </div>

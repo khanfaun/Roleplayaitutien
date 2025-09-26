@@ -1,5 +1,7 @@
+
 import React from 'react';
-import type { BreakthroughReport } from '../types';
+// FIX: Added StatChange to import list
+import type { BreakthroughReport, StatChange } from '../types';
 import { ChevronRightIcon, SparklesIcon } from './Icons';
 
 const StatRow: React.FC<{ label: string, before: number, after: number }> = ({ label, before, after }) => {
@@ -51,7 +53,8 @@ export const BreakthroughModal: React.FC<{ report: BreakthroughReport, onClose: 
                 <div className="p-6 space-y-2 max-h-[50vh] overflow-y-auto styled-scrollbar">
                      <h3 className="text-lg font-semibold text-yellow-200 mb-3 text-center">Chỉ số lột xác</h3>
                      {Object.entries(report.statChanges).map(([name, change]) => (
-                        <StatRow key={name} label={name} before={change.before} after={change.after} />
+// FIX: Cast `change` to StatChange to resolve property access errors.
+                        <StatRow key={name} label={name} before={(change as StatChange).before} after={(change as StatChange).after} />
                      ))}
                 </div>
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { ScenarioData } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
@@ -12,6 +13,10 @@ import { IntroScreen } from './components/ui/IntroScreen';
 import { DeathScreen } from './components/ui/DeathScreen';
 import { DesktopLayout } from './components/layout/DesktopLayout';
 import { MobileLayout } from './components/layout/MobileLayout';
+import { HeThongPanel, InventoryPanel } from './components/GamePanels';
+import { SmartTooltip } from './components/SmartTooltip';
+import Panel from './components/Panel';
+import { BackpackIcon } from './components/Icons';
 
 
 const App: React.FC = () => {
@@ -19,26 +24,26 @@ const App: React.FC = () => {
     const [activeCenterTab, setActiveCenterTab] = useState('event');
     const [mobileTab, setMobileTab] = useState('DIEN_BIEN');
     const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
-    const [activeRightColumnPanel, setActiveRightColumnPanel] = useState<'heThong' | 'board' | 'sect' | null>('sect');
-    const [activeLeftPanel, setActiveLeftPanel] = useState<string | null>('daoHuu');
+    const [isHeThongModalOpen, setIsHeThongModalOpen] = useState(false);
+    const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
+    
+    const [showHeThongTutorial, setShowHeThongTutorial] = useState(false);
+    const heThongIconRef = useRef<HTMLButtonElement>(null);
     
     const game = useGameLogic();
     const prevHeThongStatusRef = useRef<string | undefined>(undefined);
-    const prevIsThienMenhBanActiveRef = useRef<boolean | undefined>(undefined);
 
-    const handleToggleLeftPanel = (panelId: string) => {
-        setActiveLeftPanel(prev => (prev === panelId ? null : panelId));
-    };
+    const handleToggleInventoryModal = () => setIsInventoryModalOpen(prev => !prev);
 
     useEffect(() => {
         // When game is initialized, switch to game view
-        if (game.isInitialized && game.isApiReady) {
+        if (game.isInitialized && (game.isApiReady || game.isDemoMode)) {
             setView('game');
-        } else if (view === 'game' && (!game.isInitialized || !game.isApiReady)) {
-            // If game is no longer initialized or API key is cleared, switch to intro
+        } else if (view === 'game' && !game.isInitialized) {
+            // If game is no longer initialized, switch to intro
             setView('intro');
         }
-    }, [game.isInitialized, game.isApiReady, view]);
+    }, [game.isInitialized, game.isApiReady, game.isDemoMode, view]);
 
     useEffect(() => {
         if (view !== 'game') return;
@@ -61,8 +66,8 @@ const App: React.FC = () => {
     useEffect(() => {
         // This effect runs after the component renders, so prevHeThongStatusRef.current holds the value from the *previous* render.
         if (prevHeThongStatusRef.current === 'inactive' && game.gameState.player.heThongStatus === 'active') {
-            // He Thong was just activated, open its panel
-            setActiveRightColumnPanel('heThong');
+            // He Thong was just activated, show the tutorial overlay
+            setShowHeThongTutorial(true);
             
             const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
             if (isMobile) {
@@ -72,19 +77,6 @@ const App: React.FC = () => {
         // Update the ref for the next render.
         prevHeThongStatusRef.current = game.gameState.player.heThongStatus;
     }, [game.gameState.player.heThongStatus]);
-
-    useEffect(() => {
-        if (prevIsThienMenhBanActiveRef.current === false && game.gameState.isThienMenhBanActive === true) {
-            // Thien Menh Ban was just activated, open its panel on desktop
-            const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-            if (!isMobile) {
-                setActiveRightColumnPanel('board');
-            } else {
-                setMobileTab('THIEN_MENH_BAN');
-            }
-        }
-        prevIsThienMenhBanActiveRef.current = game.gameState.isThienMenhBanActive;
-    }, [game.gameState.isThienMenhBanActive]);
 
     const [isEditingName, setIsEditingName] = useState(false);
     const [editedName, setEditedName] = useState(game.gameState.player.name);
@@ -110,8 +102,13 @@ const App: React.FC = () => {
         }
     }, [mobileTab, activeCenterTab, view]);
 
-    if (!game.isApiReady) {
-        return <ApiKeyInputOverlay onSubmit={game.handleApiKeySubmit} isLoading={game.isApiKeyLoading} success={game.apiValidationSuccess} error={game.apiValidationError} />;
+    if ((!game.isApiReady && !game.isDemoMode) || game.isRequestingApiKey) {
+        return <ApiKeyInputOverlay 
+            onSubmit={game.handleApiKeySubmit} 
+            onStartDemo={game.startDemoMode}
+            isLoading={game.isApiKeyLoading} 
+            isRePrompt={game.isRequestingApiKey}
+        />;
     }
 
     if (view === 'intro') {
@@ -164,10 +161,61 @@ const App: React.FC = () => {
                 currentPlayer={game.gameState.player}
             />
             
+            <HeThongPanel
+                game={game}
+                isOpen={isHeThongModalOpen}
+                onClose={() => setIsHeThongModalOpen(false)}
+            />
+
+            {isInventoryModalOpen && (
+                <div className="fixed inset-0 bg-black/70 z-40 flex items-center justify-center p-4" onClick={handleToggleInventoryModal}>
+                    <div className="w-full max-w-2xl h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                        <Panel
+                            title="Túi Đồ"
+                            icon={<BackpackIcon />}
+                            className="w-full h-full flex flex-col"
+                            isCollapsed={false}
+                            onToggle={handleToggleInventoryModal}
+                        >
+                             <InventoryPanel 
+                                gameState={game.gameState}
+                                inventoryCounts={game.inventoryCounts}
+                                groupedConsumableItems={game.groupedConsumableItems}
+                                equipmentItems={game.equipmentItems}
+                                techniqueItems={game.techniqueItems}
+                                handleEquipItem={game.handleEquipItem}
+                                handleCraftItem={game.handleCraftItem}
+                                handleUseItem={game.handleUseItem}
+                                handlePlayerAction={(action) => game.handlePlayerAction(action, 'suggestion')}
+                                handleItemImageChange={game.handleItemImageChange}
+                            />
+                        </Panel>
+                    </div>
+                </div>
+            )}
+
+            {showHeThongTutorial && (
+                <div 
+                    className="fixed inset-0 bg-black/70 z-50"
+                    onClick={() => setShowHeThongTutorial(false)}
+                >
+                    {heThongIconRef.current && (
+                        <SmartTooltip
+                            target={heThongIconRef.current}
+                            show={true}
+                            position="right"
+                            className="w-max max-w-xs p-3 text-center text-sm bg-slate-900 border border-yellow-500/50 rounded-lg shadow-xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <p className="font-bold text-yellow-300">Hệ Thống Đã Kích Hoạt!</p>
+                            <p className="mt-1">Nhấn vào biểu tượng Hệ Thống để mở hoặc nhấn vào bất cứ đâu để đóng hướng dẫn này.</p>
+                        </SmartTooltip>
+                    )}
+                </div>
+            )}
+            
             <DesktopLayout
                 game={game}
-                activeLeftPanel={activeLeftPanel}
-                handleToggleLeftPanel={handleToggleLeftPanel}
                 isEditingName={isEditingName}
                 setIsEditingName={setIsEditingName}
                 editedName={editedName}
@@ -176,8 +224,10 @@ const App: React.FC = () => {
                 activeCenterTab={activeCenterTab}
                 setActiveCenterTab={setActiveCenterTab}
                 setIsSimulatorOpen={setIsSimulatorOpen}
-                activeRightColumnPanel={activeRightColumnPanel}
-                setActiveRightColumnPanel={setActiveRightColumnPanel}
+                onOpenHeThongModal={() => setIsHeThongModalOpen(true)}
+                onOpenInventoryModal={handleToggleInventoryModal}
+                heThongIconRef={heThongIconRef}
+                isHeThongTutorialActive={showHeThongTutorial}
             />
 
             <MobileLayout

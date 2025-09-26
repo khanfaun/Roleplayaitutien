@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { GameState, Player, Item, ActionOutcome, CombatState, WorldPhase, Recipe, Quest, BoardSquare, DongPhuBuilding, Sect, Rule, JournalEntry, LogEntry, HeThongQuest, ScenarioData, NguHanhType, PlayerAttributes, StatChange, BreakthroughReport, ScenarioStage, StatusEffect, MajorRealm, MinorRealm, CultivationTier, RealmQuality, InitialItem, InitialCongPhap, CombatTurnOutcome, InitialSect } from '../types';
+// FIX: Removed `Sect` from import as it's deprecated and `InitialSect` is already imported.
+import type { GameState, Player, Item, ActionOutcome, CombatState, WorldPhase, Recipe, Quest, BoardSquare, DongPhuBuilding, Rule, JournalEntry, LogEntry, HeThongQuest, ScenarioData, NguHanhType, PlayerAttributes, StatChange, BreakthroughReport, ScenarioStage, StatusEffect, MajorRealm, MinorRealm, CultivationTier, RealmQuality, InitialItem, InitialCongPhap, CombatTurnOutcome, InitialSect } from '../types';
 import { INITIAL_PLAYER_STATS, BOARD_SIZE, PLAYER_NAME, INITIAL_RECIPES, INITIAL_DONG_PHU_STATE, INITIAL_AI_RULES, INITIAL_THIEN_DAO_RULES, FULL_CONTEXT_REFRESH_CYCLE, CULTIVATION_SYSTEM, INITIAL_CORE_MEMORY_RULES } from '../constants';
 import { STATUS_EFFECT_DEFINITIONS, DESTINY_DEFINITIONS, ALL_ITEM_EFFECT_DEFINITIONS } from '../data/effects';
 import { THIEN_THU_VAT_PHAM_TIEU_HAO, THIEN_THU_TRANG_BI, THIEN_THU_PHAP_BAO, THIEN_THU_CONG_PHAP } from '../data/thienThu';
@@ -10,10 +11,11 @@ import { handleDiceRollLogic, handlePlayerActionLogic, triggerManualBreakthrough
 import { processActionOutcomeReducer, processCombatTurnOutcomeReducer } from './gameLogic/actionProcessors';
 import { findRealmDetails, calculateStatChanges, updatePlayerStatsForCultivation } from './gameLogic/cultivation';
 import { DEV_MODE_SKIP_API_KEY } from '../devConfig';
+import { DEMO_GAME_STATE } from '../data/demo';
 
 
 const API_KEY_STORAGE_KEY = 'gemini_api_key';
-const INITIAL_HETHONG_STATE = { quests: [] };
+const INITIAL_HETHONG_STATE = { quests: [], unlockedFeatures: [] };
 const INITIAL_GAME_STATE: GameState = {
     player: INITIAL_PLAYER_STATS,
     inventory: [],
@@ -42,7 +44,6 @@ const INITIAL_GAME_STATE: GameState = {
     breakthroughReport: null,
     scenarioSummary: '',
     scenarioStages: [],
-    isThienMenhBanActive: false,
     cultivationSystem: JSON.parse(JSON.stringify(CULTIVATION_SYSTEM)),
     thienThu: {
         vatPhamTieuHao: JSON.parse(JSON.stringify(THIEN_THU_VAT_PHAM_TIEU_HAO)),
@@ -97,15 +98,15 @@ export const useGameLogic = () => {
     // --- STATE MANAGEMENT ---
     const [gameState, setGameState] = useState<GameState>(() => applyCustomThienThu(JSON.parse(JSON.stringify(INITIAL_GAME_STATE))));
     const [isApiReady, setIsApiReady] = useState(DEV_MODE_SKIP_API_KEY);
-    const [apiValidationError, setApiValidationError] = useState<string | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const [hasLocalSave, setHasLocalSave] = useState(false);
     const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
     const [isRolling, setIsRolling] = useState(false);
     const [diceFace, setDiceFace] = useState(1);
     const [playerInput, setPlayerInput] = useState('');
-    const [apiValidationSuccess, setApiValidationSuccess] = useState(false);
     const [isApiKeyLoading, setIsApiKeyLoading] = useState(!DEV_MODE_SKIP_API_KEY);
+    const [isRequestingApiKey, setIsRequestingApiKey] = useState(false);
+    const [isDemoMode, setIsDemoMode] = useState(false);
 
     // --- MEMOIZED SELECTORS ---
     const playerBaseStats = useMemo(() => {
@@ -176,7 +177,7 @@ export const useGameLogic = () => {
     }, []);
 
     const saveGameStateToLocal = useCallback(() => {
-        if (!autoSaveEnabled) return;
+        if (!autoSaveEnabled || isDemoMode) return;
         try {
             const stateToSave = { ...gameState, breakthroughReport: null };
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stateToSave));
@@ -184,13 +185,15 @@ export const useGameLogic = () => {
         } catch (error) {
             console.error("Failed to save game state to local storage", error);
         }
-    }, [gameState, autoSaveEnabled]);
+    }, [gameState, autoSaveEnabled, isDemoMode]);
 
     // --- EFFECTS ---
     useEffect(() => {
-        const savedGame = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedGame) setHasLocalSave(true);
-    }, []);
+        if (!isDemoMode) {
+            const savedGame = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (savedGame) setHasLocalSave(true);
+        }
+    }, [isDemoMode]);
 
     useEffect(() => {
         if (isInitialized) saveGameStateToLocal();
@@ -199,31 +202,63 @@ export const useGameLogic = () => {
     // --- API & SESSION MANAGEMENT ---
     const goHome = useCallback(() => {
         setIsInitialized(false);
+        setIsDemoMode(false);
+        setIsRequestingApiKey(false);
         setGameState(applyCustomThienThu(JSON.parse(JSON.stringify(INITIAL_GAME_STATE))));
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setHasLocalSave(false);
     }, []);
 
     useEffect(() => {
-        if (!DEV_MODE_SKIP_API_KEY) {
+        if (!DEV_MODE_SKIP_API_KEY && !isDemoMode) {
             checkStoredApiKeyLogic({ setIsApiReady, setIsApiKeyLoading });
         }
-    }, []);
+    }, [isDemoMode]);
 
-    const handleApiKeySubmit = useCallback(async (key: string) => {
-        await handleApiKeySubmitLogic(key, { setApiValidationError, setIsApiKeyLoading, setApiValidationSuccess, setIsApiReady });
-    }, []);
+    const handleApiKeySubmit = useCallback((key: string) => {
+        setIsRequestingApiKey(false);
+        handleApiKeySubmitLogic(key, { setIsApiReady });
+        addLogEntry({ type: 'system', content: 'Đã cập nhật API Key. Vui lòng thử lại hành động trước đó.' });
+    }, [addLogEntry]);
 
     const clearApiKey = useCallback(() => {
         clearApiKeyLogic({ goHome, setIsApiReady });
     }, [goHome]);
 
+    const handleApiError = useCallback((error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes("API Key") || errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("permission denied")) {
+            clearApiKeyLogic({ setIsApiReady });
+            setIsRequestingApiKey(true);
+        }
+        setGameState(prev => ({ ...prev, isLoading: false }));
+        // The original caller will handle logging the error.
+        throw error;
+    }, [setIsApiReady]);
+
+
     const initializeGame = useCallback(async ({ setupData, isRestart }: { setupData?: ScenarioData, isRestart?: boolean }) => {
-        await initializeGameLogic(
-            { setupData, isRestart },
-            { setGameState, goHome, addLogEntry, updatePlayerStatsForCultivation, applyCustomThienThu, setIsInitialized }
-        );
-    }, [goHome, addLogEntry]);
+        setGameState(prev => ({ ...prev, isLoading: true }));
+        try {
+            await initializeGameLogic(
+                { setupData, isRestart },
+                { setGameState, goHome, addLogEntry, updatePlayerStatsForCultivation, applyCustomThienThu, setIsInitialized }
+            );
+        } catch (error) {
+            handleApiError(error);
+            addLogEntry({ type: 'system', content: `Lỗi khởi tạo game: ${error instanceof Error ? error.message : String(error)}` });
+        } finally {
+            setGameState(prev => ({ ...prev, isLoading: false }));
+        }
+    }, [goHome, addLogEntry, handleApiError]);
+
+    const startDemoMode = useCallback(() => {
+        setIsDemoMode(true);
+        setIsApiReady(true); // Bypass key screen
+        setGameState(prev => ({...prev, ...DEMO_GAME_STATE}));
+        setIsInitialized(true);
+        addLogEntry({ type: 'system', content: 'Chào mừng đến với bản chơi thử!' });
+    }, [addLogEntry]);
 
     const continueGame = useCallback(() => {
         continueGameLogic({ setGameState, applyCustomThienThu, setIsInitialized });
@@ -231,8 +266,8 @@ export const useGameLogic = () => {
     
     // --- ACTION PROCESSING ---
     const processActionOutcome = useCallback((outcome: ActionOutcome) => {
-        setGameState(prev => processActionOutcomeReducer(prev, outcome, { addLogEntry, findRealmDetails, updatePlayerStatsForCultivation, calculateStatChanges }));
-    }, [addLogEntry]);
+        setGameState(prev => processActionOutcomeReducer(prev, outcome, { findRealmDetails, updatePlayerStatsForCultivation, calculateStatChanges }));
+    }, []);
     
     const processCombatTurnOutcome = useCallback((outcome: CombatTurnOutcome) => {
         setGameState(prev => processCombatTurnOutcomeReducer(prev, outcome, { addLogEntry }));
@@ -240,30 +275,65 @@ export const useGameLogic = () => {
     
     // --- GAME CONTROLLERS ---
     const handleDiceRoll = useCallback(async () => {
-        await handleDiceRollLogic(
-            { gameState },
-            { setIsRolling, setGameState, setDiceFace, addLogEntry, processActionOutcome }
-        );
-    }, [gameState, addLogEntry, processActionOutcome]);
+        if (isDemoMode) {
+            addLogEntry({ type: 'dice_roll', content: 'Bạn gieo được 6 điểm. Vận mệnh đưa đẩy đến ô Kỳ Ngộ.' });
+            addLogEntry({ type: 'ai_story', content: 'Trong bản chơi thử, mọi con đường đều dẫn đến kỳ ngộ! Bạn nhận được một viên Linh Thạch Hạ Phẩm.' });
+            setGameState(prev => ({
+                ...prev,
+                inventory: [...prev.inventory, { id: 'demo_item_1', name: 'Linh Thạch Hạ Phẩm', description: 'Đá chứa linh khí', category: 'Vật phẩm' }],
+                currentEvent: DEMO_GAME_STATE.currentEvent
+            }));
+            return;
+        }
+        try {
+            await handleDiceRollLogic(
+                { gameState },
+                { setIsRolling, setGameState, setDiceFace, addLogEntry, processActionOutcome }
+            );
+        } catch(error) {
+            handleApiError(error);
+            addLogEntry({ type: 'system', content: `Lỗi gieo vận mệnh: ${error instanceof Error ? error.message : String(error)}` });
+        }
+    }, [gameState, addLogEntry, processActionOutcome, isDemoMode, handleApiError]);
     
     const handlePlayerAction = useCallback(async (action: string, source: 'suggestion' | 'input') => {
-        await handlePlayerActionLogic(
-            action,
-            source,
-            { gameState },
-            { setGameState, addLogEntry, setPlayerInput, processCombatTurnOutcome, processActionOutcome }
-        );
-    }, [gameState, addLogEntry, processCombatTurnOutcome, processActionOutcome]);
+        if (isDemoMode) {
+            addLogEntry({ type: 'player_choice', content: action });
+            addLogEntry({ type: 'system', content: 'Đây là bản chơi thử. Các lựa chọn sẽ dẫn đến cùng một kết quả tiếp theo.' });
+            setGameState(prev => ({ ...prev, currentEvent: DEMO_GAME_STATE.currentEvent, gameLog: [...prev.gameLog, DEMO_GAME_STATE.gameLog[1]] }));
+            return;
+        }
+        try {
+            await handlePlayerActionLogic(
+                action,
+                source,
+                { gameState },
+                { setGameState, addLogEntry, setPlayerInput, processCombatTurnOutcome, processActionOutcome }
+            );
+        } catch (error) {
+            handleApiError(error);
+            addLogEntry({ type: 'system', content: `Lỗi thực hiện hành động: ${error instanceof Error ? error.message : String(error)}` });
+        }
+    }, [gameState, addLogEntry, processCombatTurnOutcome, processActionOutcome, isDemoMode, handleApiError]);
 
     const triggerManualBreakthrough = useCallback(async () => {
-        await triggerManualBreakthroughLogic(
-            { gameState },
-            { setGameState, addLogEntry }
-        );
-    }, [gameState, addLogEntry]);
+        try {
+            await triggerManualBreakthroughLogic(
+                { gameState },
+                { setGameState, addLogEntry }
+            );
+        } catch (error) {
+            handleApiError(error);
+            addLogEntry({ type: 'system', content: `Lỗi đột phá: ${error instanceof Error ? error.message : String(error)}` });
+        }
+    }, [gameState, addLogEntry, handleApiError]);
 
     // --- UI HANDLERS (Simple wrappers) ---
     const handleSaveGame = useCallback(() => {
+        if (isDemoMode) {
+            alert("Không thể lưu trong chế độ chơi thử.");
+            return;
+        }
         const stateToSave = { ...gameState, breakthroughReport: null };
         const jsonString = JSON.stringify(stateToSave, null, 2);
         const blob = new Blob([jsonString], { type: "application/json" });
@@ -275,7 +345,7 @@ export const useGameLogic = () => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    }, [gameState]);
+    }, [gameState, isDemoMode]);
 
     const handleLoadGame = useCallback((file: File) => {
         const reader = new FileReader();
@@ -287,6 +357,7 @@ export const useGameLogic = () => {
                     let finalState: GameState = { ...INITIAL_GAME_STATE, ...loadedState, player: { ...INITIAL_GAME_STATE.player, ...(loadedState.player || {}) }, dongPhu: { ...INITIAL_GAME_STATE.dongPhu, ...(loadedState.dongPhu || {}) }, heThong: { ...INITIAL_GAME_STATE.heThong, ...(loadedState.heThong || {}) }, thienThu: { ...INITIAL_GAME_STATE.thienThu, ...(loadedState.thienThu || {}) }, worldData: { ...INITIAL_GAME_STATE.worldData, ...(loadedState.worldData || {}) } };
                     finalState = applyCustomThienThu(finalState);
                     setGameState(finalState);
+                    setIsDemoMode(false); // Loading a real game exits demo mode
                     setIsInitialized(true);
                 }
             } catch (error) {
@@ -340,9 +411,7 @@ export const useGameLogic = () => {
     return {
         gameState,
         isApiReady,
-        apiValidationError,
         isApiKeyLoading,
-        apiValidationSuccess,
         handleApiKeySubmit,
         clearApiKey,
         isInitialized,
@@ -378,6 +447,9 @@ export const useGameLogic = () => {
         handleItemImageChange,
         handleThienThuItemImageChange,
         setCurrentMapViewId,
-        goHome
+        goHome,
+        isRequestingApiKey,
+        isDemoMode,
+        startDemoMode
     };
 };

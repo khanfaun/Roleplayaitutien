@@ -1,7 +1,5 @@
-
-
 import React from 'react';
-import type { GameState, LogEntry } from '../types';
+import type { GameState, LogEntry, EventOption, EventOptionObject } from '../types';
 
 interface InteractionUIProps {
     gameState: GameState;
@@ -12,9 +10,24 @@ interface InteractionUIProps {
     handlePlayerAction: (action: string, source: 'suggestion' | 'input') => void;
     isAtBottleneck?: boolean;
     triggerManualBreakthrough?: () => void;
+    isDemoMode?: boolean;
 }
 
-export const InteractionUI: React.FC<InteractionUIProps> = ({ gameState, isLoading, isRolling, playerInput, setPlayerInput, handlePlayerAction, isAtBottleneck, triggerManualBreakthrough }) => {
+const getOptionText = (option: EventOption): string => {
+    if (typeof option === 'string') {
+        return option;
+    }
+    // This path should ideally not be taken with the new Gemini response format,
+    // but this makes the UI more robust against unexpected data structures.
+    if (option && typeof option === 'object' && 'text' in option) {
+        return (option as EventOptionObject).text;
+    }
+    console.warn("Unexpected option format received in UI:", option);
+    return "Lỗi tùy chọn"; // Return a user-friendly error string.
+};
+
+
+export const InteractionUI: React.FC<InteractionUIProps> = ({ gameState, isLoading, isRolling, playerInput, setPlayerInput, handlePlayerAction, isAtBottleneck, triggerManualBreakthrough, isDemoMode = false }) => {
     
     const handleSuggestionClick = (suggestion: string) => {
         handlePlayerAction(suggestion, 'suggestion');
@@ -22,13 +35,13 @@ export const InteractionUI: React.FC<InteractionUIProps> = ({ gameState, isLoadi
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (isLoading || !playerInput.trim()) return;
+        if (isLoading || !playerInput.trim() || isDemoMode) return;
         handlePlayerAction(playerInput, 'input');
     };
     
-    const isInputDisabled = isLoading || isRolling;
+    const isInputDisabled = isLoading || isRolling || isDemoMode;
     
-    let suggestions: (string | object)[] = [];
+    let suggestions: EventOption[] = [];
     let combatContent: React.ReactNode = null;
 
     if (gameState.combatState) {
@@ -175,25 +188,9 @@ export const InteractionUI: React.FC<InteractionUIProps> = ({ gameState, isLoadi
             {suggestions.length > 0 && !isLoading && !isRolling && (
                  <div className="grid grid-cols-2 gap-2 mb-4 p-3 rounded-lg bg-slate-850/30 border border-slate-800/20">
                     {suggestions.map((option, index) => {
-                        let optionText: string;
-                        let key: string;
+                        const optionText = getOptionText(option);
+                        const key = `suggestion-${index}`;
                 
-                        if (typeof option === 'string') {
-                            optionText = option;
-                            key = `${option}-${index}`;
-                        } else if (typeof option === 'object' && option !== null) {
-                            const opt = option as any;
-                            // Attempt to reconstruct the string from a potential object structure like {action, note}.
-                            // The AI rule requires notes to be in parentheses.
-                            optionText = `${opt.action || ''} ${opt.note || ''}`.trim();
-                            key = `${opt.id || JSON.stringify(option)}-${index}`;
-                        } else {
-                            // Fallback for any other unexpected type.
-                            optionText = String(option);
-                            key = `option-${index}`;
-                        }
-                
-                        // Prevent rendering empty or invalid buttons
                         if (!optionText) {
                             console.warn('Received an empty or invalid option:', option);
                             return null;
@@ -222,7 +219,7 @@ export const InteractionUI: React.FC<InteractionUIProps> = ({ gameState, isLoadi
                     type="text"
                     value={playerInput}
                     onChange={e => setPlayerInput(e.target.value)}
-                    placeholder={isInputDisabled ? "Đang chờ..." : "Nhập hành động của ngươi..."}
+                    placeholder={isDemoMode ? "Chế độ chơi thử, không thể nhập." : (isInputDisabled ? "Đang chờ..." : "Nhập hành động của ngươi...")}
                     disabled={isInputDisabled}
                     className="flex-grow bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition disabled:bg-slate-800/50 disabled:cursor-not-allowed"
                     aria-label="Player action input"

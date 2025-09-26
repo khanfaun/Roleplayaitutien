@@ -1,11 +1,11 @@
 import React from 'react';
-import { BookOpenIcon, MapIcon, SparklesIcon, CpuChipIcon, ShieldCheckIcon, BuildingLibraryIcon, ScrollIcon, UserIcon } from '../Icons';
+import { BookOpenIcon, MapIcon, SparklesIcon, CpuChipIcon, ShieldCheckIcon, BuildingLibraryIcon, ScrollIcon, UserIcon, UsersIcon } from '../Icons';
 
-export const BottomNav: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void; heThongActive: boolean; thienMenhBanActive: boolean; }> = ({ activeTab, setActiveTab, heThongActive, thienMenhBanActive }) => {
+export const BottomNav: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void; heThongActive: boolean; }> = ({ activeTab, setActiveTab, heThongActive }) => {
     const navItems = [
         { id: 'DIEN_BIEN', label: 'Diễn Biến', icon: <BookOpenIcon className="w-5 h-5 mx-auto mb-0.5" /> },
         { id: 'THE_GIOI', label: 'Thế Giới', icon: <MapIcon className="w-5 h-5 mx-auto mb-0.5" /> },
-        ...(thienMenhBanActive ? [{ id: 'THIEN_MENH_BAN', label: 'Thiên Mệnh', icon: <SparklesIcon className="w-5 h-5 mx-auto mb-0.5" /> }] : []),
+        { id: 'NPC', label: 'NPC', icon: <UsersIcon className="w-5 h-5 mx-auto mb-0.5" /> },
         ...(heThongActive ? [{ id: 'HE_THONG', label: 'Hệ Thống', icon: <CpuChipIcon className="w-5 h-5 mx-auto mb-0.5" /> }] : []),
         { id: 'MON_PHAI', label: 'Môn Phái', icon: <ShieldCheckIcon className="w-5 h-5 mx-auto mb-0.5" /> },
         { id: 'THIEN_THU', label: 'Thiên Thư', icon: <BuildingLibraryIcon className="w-5 h-5 mx-auto mb-0.5" /> },

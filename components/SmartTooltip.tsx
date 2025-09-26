@@ -6,10 +6,11 @@ interface SmartTooltipProps {
   target: HTMLElement | null;
   show: boolean;
   className?: string;
+  position?: 'auto' | 'top' | 'bottom' | 'left' | 'right';
   onClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }
 
-export const SmartTooltip = React.forwardRef<HTMLDivElement, SmartTooltipProps>(({ children, target, show, className, onClick }, forwardedRef) => {
+export const SmartTooltip = React.forwardRef<HTMLDivElement, SmartTooltipProps>(({ children, target, show, className, position = 'auto', onClick }, forwardedRef) => {
     const internalRef = useRef<HTMLDivElement>(null);
     const tooltipRef = (forwardedRef || internalRef) as React.RefObject<HTMLDivElement>;
 
@@ -33,26 +34,39 @@ export const SmartTooltip = React.forwardRef<HTMLDivElement, SmartTooltipProps>(
             let top: number;
             let left: number;
 
-            // Vertical positioning: prefer above
-            if (parentRect.top - tooltipRect.height - margin > margin) {
-                top = parentRect.top - tooltipRect.height - margin;
-            } else { // Not enough space above, place below
-                top = parentRect.bottom + margin;
+            if (position === 'right') {
+                top = parentRect.top + parentRect.height / 2 - tooltipRect.height / 2;
+                left = parentRect.right + margin;
+
+                // Adjust if it overflows right edge of viewport
+                if (left + tooltipRect.width > viewportWidth - margin) {
+                    left = parentRect.left - tooltipRect.width - margin; // Try to position on the left
+                }
+            } else { // 'auto', 'top', 'bottom' default behavior
+                // Vertical positioning: prefer above
+                if (parentRect.top - tooltipRect.height - margin > 0) {
+                    top = parentRect.top - tooltipRect.height - margin;
+                } else { // Not enough space above, place below
+                    top = parentRect.bottom + margin;
+                }
+
+                // Horizontal positioning: prefer centered
+                left = parentRect.left + (parentRect.width / 2) - (tooltipRect.width / 2);
             }
 
-            // Horizontal positioning: prefer centered
-            left = parentRect.left + (parentRect.width / 2) - (tooltipRect.width / 2);
 
-            // Adjust if it overflows horizontally
-            if (left < margin) {
-                left = margin;
-            } else if (left + tooltipRect.width > viewportWidth - margin) {
-                left = viewportWidth - tooltipRect.width - margin;
+            // General collision detection after initial placement
+            if (top < margin) {
+                top = margin;
             }
-
-            // Adjust if it overflows vertically (after potentially placing it below)
             if (top + tooltipRect.height > viewportHeight - margin) {
                 top = viewportHeight - tooltipRect.height - margin;
+            }
+            if (left < margin) {
+                left = margin;
+            }
+            if (left + tooltipRect.width > viewportWidth - margin) {
+                left = viewportWidth - tooltipRect.width - margin;
             }
 
             setStyle(prev => ({
@@ -70,7 +84,7 @@ export const SmartTooltip = React.forwardRef<HTMLDivElement, SmartTooltipProps>(
                 pointerEvents: 'none',
             }));
         }
-    }, [show, target, children, onClick]);
+    }, [show, target, children, position, onClick]);
 
     if (!show) return null;
 

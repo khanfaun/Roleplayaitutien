@@ -122,7 +122,8 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         <div className="flex-1 overflow-y-auto styled-scrollbar p-4">
                             {Object.entries(manifest.categories).map(([catKey, category]) => (
                                 <details key={catKey} className="bg-slate-800/50 rounded-lg border border-slate-700 mb-2" open>
-                                    <summary className="p-2 font-bold text-yellow-200 cursor-pointer">{category.name}</summary>
+                                    {/* FIX: Check if category exists before accessing its name property */}
+                                    <summary className="p-2 font-bold text-yellow-200 cursor-pointer">{category?.name}</summary>
                                     <div className="p-2 border-t border-slate-700">
                                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                                             {manifest.images.filter(img => img.category === catKey && img.fileName.toLowerCase().includes(imageSearchTerm.toLowerCase())).map(image => (
@@ -163,7 +164,8 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         </div>
                          <select value={expandedCategory || ''} onChange={(e) => setExpandedCategory(e.target.value || null)} className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm mb-2">
                             <option value="">Tất cả nhóm</option>
-                            {Object.entries(manifest.categories).map(([key, cat]) => <option key={key} value={key}>{cat.name}</option>)}
+                            {/* FIX: Check if cat exists before accessing its name property */}
+                            {Object.entries(manifest.categories).map(([key, cat]) => <option key={key} value={key}>{cat?.name}</option>)}
                         </select>
                          <div className="px-2 py-3 border-y border-slate-700/50 flex justify-between items-center">
                             <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -198,7 +200,8 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         <input type="text" placeholder="Tìm ảnh..." value={imageSearchTerm} onChange={e => setImageSearchTerm(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm mb-2" />
                         {Object.entries(manifest.categories).map(([catKey, category]) => (
                             <details key={catKey} className="bg-slate-800/50 rounded-lg border border-slate-700" open>
-                                <summary className="p-2 font-bold text-yellow-200 cursor-pointer">{category.name}</summary>
+                                {/* FIX: Check if category exists before accessing its name property */}
+                                <summary className="p-2 font-bold text-yellow-200 cursor-pointer">{category?.name}</summary>
                                 <div className="p-2 border-t border-slate-700 space-y-2">
                                     <div className="flex gap-2">
                                         <input 
@@ -229,7 +232,8 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                                                         )}
                                                     </h5>
                                                     <div className="flex flex-wrap gap-0.5 mt-0.5">
-                                                        {image.tags.length > 0 ? image.tags.slice(0, 3).map(tag => (
+                                                         {/* FIX: Check if image.tags exists before accessing it */}
+                                                        {image.tags && image.tags.length > 0 ? image.tags.slice(0, 3).map(tag => (
                                                             <span key={tag} className="text-[9px] bg-slate-700 px-1 py-0.5 rounded">{tag}</span>
                                                         )) : <span className="text-[9px] text-slate-400 italic">Chưa có nhãn</span>}
                                                     </div>
@@ -247,7 +251,8 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         <input type="text" value={tagSearchTerm} onChange={e => setTagSearchTerm(e.target.value)} placeholder="Tìm nhãn..." className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-2 text-sm"/>
                         <div className="flex gap-2">
                             <select value={newTagCategory} onChange={(e) => setNewTagCategory(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
-                                {Object.entries(manifest.categories).map(([key, cat]) => <option key={key} value={key}>{cat.name}</option>)}
+                                {/* FIX: Check if cat exists before accessing its name property */}
+                                {Object.entries(manifest.categories).map(([key, cat]) => <option key={key} value={key}>{cat?.name}</option>)}
                             </select>
                             <input type="text" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddTag(newTag, newTagCategory)} placeholder="Nhãn mới..." className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-2 text-sm"/>
                             <button onClick={() => handleAddTag(newTag, newTagCategory)} className="p-2 bg-green-600 rounded-lg"><Icons.PlusCircleIcon className="w-6 h-6"/></button>
@@ -255,7 +260,8 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto styled-scrollbar">
                             {Object.entries(manifest.categories).map(([catKey, category]) => (
                                  <div key={catKey}>
-                                    <h4 className="font-bold text-yellow-200 mb-2">{category.name}</h4>
+                                    {/* FIX: Check if category exists before accessing its name property */}
+                                    <h4 className="font-bold text-yellow-200 mb-2">{category?.name}</h4>
                                     <div className="space-y-1">
                                         {category.tags.filter(tag => tag.toLowerCase().includes(tagSearchTerm.toLowerCase())).map(tag => (
                                             <div key={tag} className="flex items-center justify-between p-1.5 bg-slate-700/50 rounded group">

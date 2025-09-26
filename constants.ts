@@ -1,5 +1,5 @@
-
-import type { Player, Recipe, DongPhuState, Sect, Rule, MajorRealm, StatusEffect, MinorRealm, GameState, CultivationTier, RealmQuality } from './types';
+// FIX: Replaced `Sect` with `InitialSect` as `Sect` is no longer exported from types.
+import type { Player, Recipe, DongPhuState, InitialSect, Rule, MinorRealm, GameState, CultivationTier, RealmQuality, PlayerAttributes } from './types';
 
 export const PLAYER_NAME = "Đạo Hữu";
 
@@ -87,27 +87,34 @@ export const INITIAL_AI_RULES: Rule[] = [
     { id: 'ai_12', text: "Quy tắc Hệ Thống (Bàn Tay Vàng): 'Hệ Thống' là một thực thể đồng hành, chỉ được kích hoạt bởi kỳ ngộ hiếm có. Nó tự chủ ban phát nhiệm vụ, không theo yêu cầu người chơi. Nhiệm vụ có thể có mục tiêu ẩn. Kiểm tra hành động của người chơi có hoàn thành nhiệm vụ Hệ Thống không." },
     { id: 'ai_13', text: "Quy tắc thời gian nhiệm vụ Hệ Thống: Nhiệm vụ 'Bình thường' có giới hạn thời gian (timeLimit) PHẢI >= 3 lượt. 'Sự kiện đặc biệt' (rất hiếm) có timeLimit >= 20 lượt. 'Nhiệm vụ tối thượng' (cuối game) không có giới hạn thời gian." },
     { id: 'ai_14', text: "Nhiệm vụ Hệ Thống TUYỆT ĐỐI KHÔNG được yêu cầu người chơi 'lắc xúc xắc' để hoàn thành. Nhiệm vụ phải liên quan đến hành động trong thế giới game như chiến đấu, khám phá, chế tạo, hoặc tương tác." },
-    { id: 'ai_15', text: "Phần thưởng của Nhiệm vụ Hệ Thống có thể là 'Mở khóa chức năng', nhưng PHẢI giới hạn trong các chức năng đã có trong game: 'Động Phủ', 'Luyện Chế', 'Gia nhập Môn Phái'. TUYỆT ĐỐI KHÔNG được bịa ra các chức năng mới không tồn tại (ví dụ: 'Thú Cưng', 'Song Tu', 'Bảng Xếp Hạng')." },
-    { id: 'ai_16', text: "Luật Thép về Thiên Mệnh Bàn và Hệ Thống: Bàn cờ bắt đầu ẩn (isThienMenhBanActive = false). Bạn, với vai trò là AI, PHẢI chủ động dẫn dắt câu chuyện để tạo ra một sự kiện hợp lý kích hoạt Thiên Mệnh Bàn (đặt `activateThienMenhBan = true`) trong khoảng từ lượt 3 đến lượt 10. Ví dụ: nhân vật chính tìm thấy một vật phẩm cổ, gặp một kỳ ngộ, hoặc có một giác ngộ đặc biệt. **Nếu đến lượt 9 mà bàn cờ vẫn chưa được kích hoạt, bạn BẮT BUỘC PHẢI tạo sự kiện kích hoạt ở lượt 10, đồng thời viết một đoạn văn hợp lý hóa việc này, ví dụ như 'dường như số mệnh không thể trì hoãn thêm'.** QUAN TRỌNG: Khi kích hoạt Thiên Mệnh Bàn, BẮT BUỘC phải kiểm tra player.heThongStatus. Nếu nó là 'inactive', bạn PHẢI đặt awakenHeThong = true. Nếu nó là 'disabled', TUYỆT ĐỐI không được kích hoạt Hệ Thống." },
+    { id: 'ai_15', text: "Phần thưởng của Nhiệm vụ Hệ Thống có thể là 'Mở khóa chức năng', nhưng PHẢI giới hạn trong các chức năng đã có trong game: 'Động Phủ', 'Luyện Chế', 'Gia nhập Môn Phái', 'Thiên Mệnh Bàn'. TUYỆT ĐỐI KHÔNG được bịa ra các chức năng mới không tồn tại (ví dụ: 'Thú Cưng', 'Song Tu', 'Bảng Xếp Hạng')." },
+    { id: 'ai_16', text: "Luật Thép về Hệ Thống: 'Hệ Thống' bắt đầu ẩn (player.heThongStatus = 'inactive'). Bạn, với vai trò là AI, PHẢI chủ động dẫn dắt câu chuyện để tạo ra một sự kiện hợp lý kích hoạt Hệ Thống (đặt `awakenHeThong = true`) trong khoảng từ lượt 3 đến lượt 10. Ví dụ: nhân vật chính tìm thấy một vật phẩm cổ, gặp một kỳ ngộ, hoặc có một giác ngộ đặc biệt. **Nếu đến lượt 9 mà Hệ Thống vẫn chưa được kích hoạt, bạn BẮT BUỘC PHẢI tạo sự kiện kích hoạt ở lượt 10, đồng thời viết một đoạn văn hợp lý hóa việc này, ví dụ như 'dường như số mệnh không thể trì hoãn thêm'.** QUAN TRỌNG: Nếu người chơi đã tắt Hệ Thống (`heThongStatus` = 'disabled'), TUYỆT ĐỐI không được kích hoạt Hệ Thống." },
     { id: 'ai_17', text: "Quy tắc Phẩm Chất Cảnh Giới: Khi người chơi đột phá một Đại Cảnh Giới có phẩm chất (ví dụ Trúc Cơ, Kim Đan), bạn, AI, PHẢI dựa vào hành động của người chơi trong thiên kiếp và sự chuẩn bị của họ (vật phẩm, công pháp) để quyết định phẩm chất họ đạt được. Trả về ID của phẩm chất đó trong `achievedQualityId`." },
     { id: 'ai_18', text: "Quy tắc Vật Phẩm BẤT BIẾN: Khi trả về `newItem`, bạn chỉ có hai lựa chọn: 1. Chọn một vật phẩm TỒN TẠI trong danh sách Thiên Thư và sao chép chính xác thông tin của nó. 2. Tạo một vật phẩm CỐT TRUYỆN MỚI với category BẮT BUỘC là 'Nhiệm vụ'. TUYỆT ĐỐI KHÔNG được tự bịa ra bất kỳ vật phẩm, trang bị, pháp bảo, hay công pháp nào khác ngoài hai trường hợp này." },
     { id: 'ai_19', text: "Bối cảnh Địa Lý: Mọi sự kiện xảy ra PHẢI diễn ra tại địa điểm hiện tại của người chơi (`geographicalContext`). Bối cảnh này được cung cấp dưới dạng một đường dẫn phân cấp (ví dụ: 'Đại Vực > Châu Lục > Khu Vực'). Hãy sử dụng mô tả của tất cả các cấp trong đường dẫn để tạo ra các sự kiện và tường thuật phù hợp. Việc di chuyển đến một địa điểm khác là một hành động quan trọng và PHẢI được phản ánh trong `newLocationId`." },
     { id: 'ai_20', text: "Quan Hệ Thế Lực & Tính Cách NPC: Khi tạo sự kiện, nhiệm vụ, hoặc lời thoại, BẮT BUỘC phải dựa trên mối quan hệ đã được định nghĩa giữa các thế lực (Đồng minh, Thân thiện, Thù địch...). Đồng minh nên giúp đỡ, thù địch nên gây xung đột. Thái độ của NPC PHẢI phản ánh mối quan hệ của môn phái họ VÀ tính cách cá nhân của họ ('ôn hòa', 'hiếu chiến'...)." },
     { id: 'ai_21', text: "Thái Độ Cá Nhân Của NPC: Thông tin về các NPC có mặt tại hiện trường sẽ được cung cấp, bao gồm thái độ của họ đối với người chơi (`attitudeTowardsPC`). Con số này là thước đo tình cảm cá nhân, VƯỢT LÊN TRÊN quan hệ phe phái. Một NPC từ phe thù địch nhưng có `attitudeTowardsPC` > 0 (ví dụ, do được người chơi cứu) có thể hành động trung lập hoặc thậm chí giúp đỡ một cách kín đáo. Ngược lại, một NPC cùng phe nhưng có `attitudeTowardsPC` < 0 (ví dụ, do người chơi làm hại họ) có thể ngấm ngầm cản trở. Lời thoại và hành động của NPC PHẢI phản ánh sự phức tạp này. `attitudeTowardsPC` > 50 là rất thân thiện, < -50 là rất thù địch." },
-    { id: 'ai_22', text: "QUẢN LÝ TRẠNG THÁI NPC: Khi hành động của người chơi hoặc diễn biến câu chuyện làm thay đổi trạng thái của một NPC (ví dụ: bị thương, tức giận, được chữa trị), bạn BẮT BUỘC phải sử dụng trường 'npcUpdates'. Cung cấp ID của NPC và một đối tượng 'updates' chỉ chứa các chỉ số đã thay đổi (ví dụ: hp, attitudeTowardsPC). Điều này đảm bảo trạng thái của NPC được lưu lại một cách nhất quán." },
-    { id: 'ai_23', text: "QUẢN LÝ KHÁM PHÁ: Khi câu chuyện của bạn lần đầu tiên đề cập đến một địa điểm, môn phái, hoặc NPC mới mà chưa có trong danh sách 'discoveredEntityIds', bạn BẮT BUỘC phải thêm ID của chúng vào trường `newlyDiscoveredIds`. ID phải lấy từ `worldStructure`, `allSectsInWorld`, và `allNpcsInWorld` được cung cấp trong context." }
+    { id: 'ai_23', text: "QUẢN LÝ KHÁM PHÁ: Khi câu chuyện của bạn lần đầu tiên đề cập đến một địa điểm, môn phái, hoặc NPC mới mà chưa có trong danh sách 'discoveredEntityIds', bạn BẮT BUỘC phải thêm ID của chúng vào trường `newlyDiscoveredIds`. **QUAN TRỌNG VỀ ĐỊA ĐIỂM:** Nếu bạn khám phá một địa điểm (`locations`), bạn PHẢI khám phá cả chuỗi địa điểm cha của nó. Ví dụ: nếu câu chuyện đề cập đến 'Thôn A' (ID: thon_a, parentId: huyen_b), và 'Huyện B' chưa được khám phá, bạn phải trả về cả ID 'thon_a' VÀ ID 'huyen_b' trong `newlyDiscoveredIds.locations`. Luôn kiểm tra `worldStructure` để tìm `parentId` và đảm bảo toàn bộ cây phả hệ được khám phá. ID phải lấy từ `worldStructure`, `allSectsInWorld`, và `allNpcsInWorld` được cung cấp trong context." },
+    { id: 'ai_24', text: "Khi người chơi trong môn phái yêu cầu một nhiệm vụ ('Xin nhận nhiệm vụ'), hãy tạo một nhiệm vụ mới thuộc loại 'Môn phái'. Độ khó, mục tiêu và phần thưởng của nhiệm vụ PHẢI phù hợp với chức vụ của người chơi (`player.sectRank`), các cơ sở vật chất hiện có của môn phái (`sect.facilities`), và mục tiêu chung/phe phái của môn phái. Ví dụ: một đệ tử cấp thấp trong môn phái có Dược Viên cấp 1 có thể được giao nhiệm vụ thu thập thảo dược thông thường." },
+    { id: 'ai_25', text: "Khi người chơi quyên góp một vật phẩm ('Quyên góp [tên vật phẩm]'), hãy tính toán và trao thưởng điểm cống hiến (`sectContributionChange`). Giá trị điểm phải dựa trên phẩm chất (rank) và độ hiếm của vật phẩm. Vật phẩm thông thường (rank 1-2) cho ít điểm (1-10), trong khi vật phẩm hiếm (rank 4+) cho nhiều điểm (50+). Mô tả giao dịch này trong `outcomeDescription`." },
+    { id: 'ai_26', text: "Liên tục theo dõi điểm cống hiến của người chơi (`sectContribution`). Khi nó vượt qua `contributionRequired` cho chức vụ tiếp theo trong hệ thống cấp bậc của môn phái, hãy tạo ra một `nextEvent` đặc biệt để kích hoạt một thử thách hoặc buổi lễ thăng chức. Nếu người chơi thành công trong sự kiện đó, `ActionOutcome` phải cập nhật `player.sectRank` thành tên chức vụ mới." },
+    { id: 'ai_27', text: "Mở Khóa Chức Năng Hệ Thống: Khi Hệ Thống đã được kích hoạt (`player.heThongStatus` = 'active'), bạn có thể tạo ra các nhiệm vụ Hệ Thống (`newHeThongQuest`) để người chơi mở khóa các chức năng mới. Chức năng quan trọng nhất là 'Thiên Mệnh Bàn'. Hãy tạo một nhiệm vụ hợp lý (ví dụ: 'Tìm hiểu về vận mệnh', 'Thu thập mảnh vỡ Thiên Cơ') và khi người chơi hoàn thành, trong `heThongQuestUpdates`, hãy trả về `unlockSystemFeature: 'thienMenhBan'` để mở khóa chức năng này cho người chơi." }
 ];
 
 export const FULL_CONTEXT_REFRESH_CYCLE = 5;
 
-export const SECTS: Sect[] = [
+// FIX: Replaced `Sect` with `InitialSect` as `Sect` is no longer exported from types.
+export const SECTS: InitialSect[] = [
     {
         id: 'thanh_van_mon',
         name: 'Thanh Vân Môn',
         alignment: 'Chính Đạo',
         description: 'Một trong những chính đạo đứng đầu thiên hạ, lấy việc trảm yêu trừ ma làm nhiệm vụ. Công pháp chính trực, quang minh chính đại.',
         joinRequirement: 'Danh vọng Chính Đạo > 20 và không phải Ma tu.',
-        benefits: ['Mở khóa nhiệm vụ và cửa hàng môn phái.', 'Tăng hiệu quả khi đối đầu với yêu ma.']
+        benefits: ['Mở khóa nhiệm vụ và cửa hàng môn phái.', 'Tăng hiệu quả khi đối đầu với yêu ma.'],
+        ranks: [],
+        facilities: [],
+        treasury: {}
     },
     {
         id: 'hop_hoan_phai',
@@ -115,7 +122,10 @@ export const SECTS: Sect[] = [
         alignment: 'Ma Đạo',
         description: 'Môn phái ma đạo nổi tiếng với các công pháp song tu, hành sự không theo lẽ thường, vừa chính vừa tà.',
         joinRequirement: 'Danh vọng Ma Đạo > 20 hoặc vượt qua thử thách đặc biệt.',
-        benefits: ['Mở khóa công pháp và nhiệm vụ độc quyền.', 'Có lợi thế trong giao tiếp và thuyết phục.']
+        benefits: ['Mở khóa công pháp và nhiệm vụ độc quyền.', 'Có lợi thế trong giao tiếp và thuyết phục.'],
+        ranks: [],
+        facilities: [],
+        treasury: {}
     },
     {
         id: 'thien_co_cac',
@@ -123,7 +133,10 @@ export const SECTS: Sect[] = [
         alignment: 'Trung Lập',
         description: 'Tổ chức thần bí nắm giữ tri thức và bí mật của thiên hạ. Họ không can dự vào tranh chấp Chính - Ma, chỉ theo đuổi Thiên Đạo.',
         joinRequirement: 'Cần có cơ duyên đặc biệt để tìm thấy và được chấp nhận.',
-        benefits: ['Tiếp cận các công thức luyện đan, luyện khí hiếm.', 'Dễ dàng nhận biết các kỳ ngộ và bí cảnh.']
+        benefits: ['Tiếp cận các công thức luyện đan, luyện khí hiếm.', 'Dễ dàng nhận biết các kỳ ngộ và bí cảnh.'],
+        ranks: [],
+        facilities: [],
+        treasury: {}
     },
 ];
 
@@ -286,7 +299,7 @@ export const INITIAL_RECIPES: Recipe[] = [
     }
 ];
 
-export const PLAYER_ATTRIBUTE_NAMES: Record<keyof import('./types').PlayerAttributes, string> = {
+export const PLAYER_ATTRIBUTE_NAMES: Record<keyof PlayerAttributes, string> = {
     physicalStrength: 'Sức mạnh vật lý',
     magicPower: 'Sức mạnh phép thuật',
     bodyStrength: 'Sức mạnh nhục thân',

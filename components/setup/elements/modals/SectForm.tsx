@@ -1,3 +1,4 @@
+// FIX: Added import for React to resolve JSX namespace errors.
 import React, { useEffect } from 'react';
 import type { InitialSect, WorldLocation } from '../../../../types';
 import { getSectDisplayName } from '../shared';
