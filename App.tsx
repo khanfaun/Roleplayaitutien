@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { ScenarioData } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
@@ -171,7 +172,8 @@ const App: React.FC = () => {
             <ImageAssignmentModal
                 isOpen={isPlayerImageModalOpen}
                 onClose={() => setIsPlayerImageModalOpen(false)}
-                item={game.gameState.player}
+                // FIX: Pass a compatible object to the `item` prop.
+                item={{ name: game.gameState.player.name }}
                 onAssign={game.handlePlayerImageChange}
             />
 

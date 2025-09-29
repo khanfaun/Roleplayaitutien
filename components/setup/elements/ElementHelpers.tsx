@@ -30,7 +30,7 @@ export const getRankColor = (rank?: number) => {
 export const getImageUrl = (imageId: string | undefined) => {
     if (!imageId) return null;
     if (imageId.startsWith('http')) return imageId;
-    return `/assets/thienthu/${imageId}`;
+    return imageId.startsWith('/') ? imageId : `/${imageId}`;
 };
 
 export const NGU_HANH_DISPLAY: Record<NguHanhType, { icon: string; name: string; colors: string }> = {

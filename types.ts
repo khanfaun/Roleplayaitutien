@@ -1,3 +1,4 @@
+
 // FIX: Replaced entire file content with correct type definitions to resolve circular dependencies and widespread type errors.
 export type GameDifficulty = 'Cực dễ' | 'Dễ' | 'Bình thường' | 'Khó' | 'Cực khó';
 export type HeThongStatus = 'disabled' | 'inactive' | 'active';
@@ -45,6 +46,8 @@ export interface StatusEffectInstance {
 
 export interface Player {
   name: string;
+  // FIX: Added optional imageId property to Player interface.
+  imageId?: string;
   level: number;
   exp: number;
   maxExp: number;
@@ -156,7 +159,7 @@ export interface WorldPhase {
 
 export interface BoardSquare {
     id: number;
-    type: 'Khởi đầu' | 'Sự kiện' | 'May mắn' | 'Xui xẻo' | 'Cột mốc' | 'Kỳ Ngộ' | 'Tâm Ma' | 'Nhân Quả' | 'Thiên Cơ' | 'Thử Luyện' | 'Bế Quan' | 'Hồng Trần' | 'Linh Mạch' | 'Pháp Bảo' | 'Giao Dịch' | 'Tai Ưng' | 'Ô Trống';
+    type: 'Khởi đầu' | 'Sự kiện' | 'May mắn' | 'Xui xẻo' | 'Cột mốc' | 'Kỳ Ngộ' | 'Tâm Ma' | 'Nhân Quả' | 'Thiên Cơ' | 'Thử Luyện' | 'Bế Quan' | 'Hồng Trần' | 'Linh Mạch' | 'Pháp Bảo' | 'Giao Dịch' | 'Tai Ương' | 'Ô Trống';
     description: string;
 }
 
@@ -296,6 +299,8 @@ export interface WorldLocation {
 export interface ScenarioData {
     scenarioName: string;
     playerName: string;
+    // FIX: Added optional playerImageId property to ScenarioData interface.
+    playerImageId?: string;
     playerAge: number;
     playerBiography: string;
     playerGoals: string;
@@ -416,7 +421,6 @@ export interface NpcCharacter extends Player {
     initialTrangBi?: InitialItem[];
     initialPhapBao?: InitialItem[];
     initialCongPhap?: InitialCongPhap[];
-    imageId?: string;
     relationships?: Relationship[];
 }
 

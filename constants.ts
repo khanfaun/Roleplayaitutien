@@ -5,7 +5,6 @@ export const PLAYER_NAME = "Đạo Hữu";
 
 export const INITIAL_PLAYER_STATS: Player = {
   name: PLAYER_NAME,
-  imageId: undefined,
   level: 1,
   exp: 0,
   maxExp: 100,

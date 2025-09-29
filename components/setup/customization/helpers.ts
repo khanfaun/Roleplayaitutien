@@ -6,7 +6,8 @@ import { PLAYER_ATTRIBUTE_NAMES } from '../../../constants';
 export const getImageUrl = (imageId: string | undefined) => {
     if (!imageId) return null;
     if (imageId.startsWith('http')) return imageId;
-    return `/assets/thienthu/${imageId}`;
+    // Ensure the path is absolute from the root. This is more robust.
+    return imageId.startsWith('/') ? imageId : `/${imageId}`;
 };
 
 export const rankMap: Record<number, string> = { 1: 'Phàm Phẩm', 2: 'Hạ Phẩm', 3: 'Trung Phẩm', 4: 'Thượng Phẩm', 5: 'Cực Phẩm', 6: 'Chí Tôn' };

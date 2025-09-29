@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import type { InitialItem, InitialCongPhap, Item, ThienThuImageManifest } from '../../types';
 import * as Icons from '../Icons';
 import * as geminiService from '../../services/geminiService';
+import { getImageUrl } from '../imageLibraryEditor/helpers';
 
 export const ImageAssignmentModal: React.FC<{
     isOpen: boolean;
@@ -71,7 +72,7 @@ export const ImageAssignmentModal: React.FC<{
                         <div className="flex-1 overflow-y-auto styled-scrollbar grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                             {manifest.images.map(image => (
                                 <button key={image.fileName} onClick={() => onAssign(image.fileName)} className="aspect-square rounded-lg overflow-hidden border-2 border-slate-600 hover:border-yellow-400 transition-colors">
-                                    <img src={`/assets/thienthu/${image.fileName}`} alt={image.fileName} className="w-full h-full object-cover" />
+                                    <img src={getImageUrl(image.fileName) || ''} alt={image.fileName} className="w-full h-full object-cover" />
                                 </button>
                             ))}
                         </div>

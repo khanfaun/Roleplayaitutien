@@ -7,7 +7,8 @@ import { ScenarioTab } from './setup/ScenarioTab';
 import { ElementsTab } from './setup/ElementsTab';
 import { CustomizationTab } from './setup/CustomizationTab';
 import { useScenarioSetup } from '../hooks/useScenarioSetup';
-import { ImageAssignmentModal } from './GamePanels';
+// FIX: Corrected import path for ImageAssignmentModal.
+import { ImageAssignmentModal } from './panels/ImageAssignmentModal';
 
 interface ScenarioSetupProps {
   onStartGame: (setupData: ScenarioData) => void;
@@ -34,6 +35,7 @@ export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBac
             <ImageAssignmentModal
                 isOpen={setup.isPlayerImageModalOpen}
                 onClose={() => setup.setIsPlayerImageModalOpen(false)}
+                // FIX: Passed a compatible object to the `item` prop.
                 item={{ name: setup.playerName || 'Nhân Vật Chính' }}
                 onAssign={(id) => setup.setPlayerImageId(id)}
             />

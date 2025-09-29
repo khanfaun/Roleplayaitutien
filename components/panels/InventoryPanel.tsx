@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef } from 'react';
 import type { GameState, Recipe, Item, PlayerAttributes, ItemEffectDefinition } from '../../types';
 import { PLAYER_ATTRIBUTE_NAMES } from '../../constants';
@@ -57,7 +58,7 @@ export const getRankColor = (rank?: number) => {
 export const getImageUrl = (imageId: string | undefined) => {
     if (!imageId) return null;
     if (imageId.startsWith('http')) return imageId;
-    return `/assets/thienthu/${imageId}`;
+    return imageId.startsWith('/') ? imageId : `/${imageId}`;
 };
 
 export const InventoryPanel: React.FC<{

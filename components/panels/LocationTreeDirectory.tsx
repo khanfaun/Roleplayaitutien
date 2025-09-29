@@ -31,7 +31,7 @@ const LocationLabel: React.FC<{ text: string, colors: string }> = ({ text, color
 const getImageUrl = (imageId: string | undefined) => {
     if (!imageId) return null;
     if (imageId.startsWith('http')) return imageId;
-    return `/assets/thienthu/${imageId}`;
+    return imageId.startsWith('/') ? imageId : `/${imageId}`;
 };
 
 
