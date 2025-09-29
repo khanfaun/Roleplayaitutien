@@ -109,4 +109,64 @@ export const SectForm: React.FC<SectFormProps> = ({ formData, handleChange, allS
                 const newDescription = `${parentSect.description}\n\nĐây là phân đà của ${parentSect.name} tại ${location?.name || 'khu vực chưa xác định'}.`;
                 
                 if (formData.name !== newName) handleChange('name', newName);
-                if (formData
+                if (formData.alignment !== parentSect.alignment) handleChange('alignment', parentSect.alignment);
+                if (formData.description !== newDescription) handleChange('description', newDescription);
+            }
+        }
+    }, [isSubSect, formData.parentSectId, formData.locationId, allSects, allWorldLocations, handleChange, formData.name, formData.alignment, formData.description]);
+
+    useEffect(() => {
+        const relationships = formData.relationships || {};
+        const definedRelations = new Set(Object.values(relationships).flatMap((arr: any) => arr || []));
+
+        // Find all sects that don't have a relationship defined yet for the current sect
+        const sectsWithoutRelation = allSects
+            .filter(s => s.id !== formData.id && !definedRelations.has(s.id));
+        
+        if (sectsWithoutRelation.length > 0) {
+            const newNeutral = [...(relationships.neutral || []), ...sectsWithoutRelation.map(s => s.id)];
+            
+            // This check prevents infinite loops if handleChange triggers re-renders
+            const currentNeutralSet = new Set(relationships.neutral || []);
+            if (sectsWithoutRelation.some(s => !currentNeutralSet.has(s.id))) {
+                 handleChange('relationships', { ...relationships, neutral: Array.from(new Set(newNeutral)) });
+            }
+        }
+    }, [formData.id, formData.relationships, allSects, handleChange]);
+
+
+    const handleRelationshipChange = (newRelationships: InitialSect['relationships']) => {
+        handleChange('relationships', newRelationships);
+    };
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+            {/* Left Column: Basic Info */}
+            <div className="space-y-4">
+                {renderField('parentSectId', 'Là phân đà/chi nhánh của?', 'select', [
+                    { value: '', label: 'Không' },
+                    ...(allSects
+                        .filter(s => s.id !== formData.id && !s.parentSectId)
+                        .map(s => ({ value: s.id, label: s.name })))
+                ])}
+                
+                {renderField('name', isSubSect ? 'Tên Phân Đà' : 'Tên Môn Phái/Thế Lực', 'text', undefined, undefined, isSubSect && !!formData.parentSectId)}
+                {renderField('alignment', 'Phe phái', 'select', ['Chính Đạo', 'Ma Đạo', 'Trung Lập'], undefined, isSubSect && !!formData.parentSectId)}
+                {renderField('description', 'Mô tả', 'textarea', undefined, undefined, isSubSect && !!formData.parentSectId)}
+                {renderField('level', 'Cấp bậc Thế lực', 'number')}
+                {renderField('locationId', 'Địa điểm', 'select-tree', allWorldLocations)}
+            </div>
+
+            {/* Right Column: Relationships */}
+            <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-yellow-200 border-b border-slate-600 pb-1">Quan hệ Đối ngoại</h4>
+                <RelationshipGrid
+                    allSects={allSects}
+                    currentSectId={formData.id}
+                    formData={formData}
+                    onRelationshipChange={handleRelationshipChange}
+                />
+            </div>
+        </div>
+    );
+};
