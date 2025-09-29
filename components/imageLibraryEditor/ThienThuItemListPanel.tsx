@@ -13,6 +13,7 @@ interface ThienThuItemListPanelProps {
     filteredAndSortedItems: any[];
     selectedItemIds: Set<string>;
     handleAiGenerateTagsFromSelection: () => void;
+    handleBulkAssignImages: () => void;
     isLoading: boolean;
     itemSortOrder: 'asc' | 'desc' | 'none';
     setItemSortOrder: (value: React.SetStateAction<'asc' | 'desc' | 'none'>) => void;
@@ -33,6 +34,7 @@ export const ThienThuItemListPanel: React.FC<ThienThuItemListPanelProps> = ({
     filteredAndSortedItems,
     selectedItemIds,
     handleAiGenerateTagsFromSelection,
+    handleBulkAssignImages,
     isLoading,
     itemSortOrder,
     setItemSortOrder,
@@ -55,13 +57,18 @@ export const ThienThuItemListPanel: React.FC<ThienThuItemListPanelProps> = ({
             </div>
             <div className="flex-shrink-0 px-2 py-3 border-y border-slate-700/50 flex justify-between items-center">
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="checkbox" onChange={toggleSelectAllItems} checked={filteredAndSortedItems.length > 0 && selectedItemIds.size === filteredAndSortedItems.length} className="h-4 w-4 rounded bg-slate-600 border-slate-500 text-yellow-400 focus:ring-yellow-500" />
+                    <input type="checkbox" onChange={toggleSelectAllItems} checked={filteredAndSortedItems.length > 0 && selectedItemIds.size === filteredAndSortedItems.length} className="h-4 w-4 rounded bg-slate-600 border-slate-500 text-yellow-400 focus:ring-yellow-400" />
                     Chọn tất cả ({selectedItemIds.size})
                 </label>
-                <button onClick={handleAiGenerateTagsFromSelection} disabled={isLoading || selectedItemIds.size === 0} className="flex items-center justify-center gap-2 px-3 py-1.5 font-bold rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-sm shadow-lg transition-all disabled:opacity-50">
-                    <Icons.CpuChipIcon className="w-5 h-5"/> AI tạo nhãn
-                </button>
-                <button onClick={() => setItemSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="text-xs px-2 py-1 bg-slate-700 border border-slate-600 rounded-md hover:bg-slate-600"> Sắp xếp {itemSortOrder === 'asc' ? '▲' : '▼'} </button>
+                <div className="flex items-center gap-2">
+                    <button onClick={handleAiGenerateTagsFromSelection} disabled={isLoading || selectedItemIds.size === 0} className="flex items-center justify-center gap-2 px-3 py-1.5 font-bold rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-sm shadow-lg transition-all disabled:opacity-50">
+                        <Icons.CpuChipIcon className="w-5 h-5"/> AI tạo nhãn
+                    </button>
+                    <button onClick={handleBulkAssignImages} disabled={isLoading || selectedItemIds.size === 0} className="flex items-center justify-center gap-2 px-3 py-1.5 font-bold rounded-lg bg-gradient-to-br from-green-500 to-teal-600 text-white text-sm shadow-lg transition-all disabled:opacity-50">
+                        <Icons.SparklesIcon className="w-5 h-5"/> AI Gán Ảnh
+                    </button>
+                    <button onClick={() => setItemSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="text-xs px-2 py-1 bg-slate-700 border border-slate-600 rounded-md hover:bg-slate-600"> Sắp xếp {itemSortOrder === 'asc' ? '▲' : '▼'} </button>
+                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto styled-scrollbar pr-2 -mr-4 pt-2">

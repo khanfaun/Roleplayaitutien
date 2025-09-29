@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { ThienThuImage, ThienThuImageManifest, InitialItem, InitialCongPhap, InitialNpc, NguHanhType, PlayerAttributes } from '../../types';
 import * as Icons from '../Icons';
@@ -24,6 +25,7 @@ interface MobileUIProps {
     filteredAndSortedItems: any[];
     selectedItemIds: Set<string>;
     handleAiGenerateTagsFromSelection: () => void;
+    handleBulkAssignImages: () => void;
     toggleItemSelection: (id: string) => void;
     setImgLibModal: (state: { isOpen: boolean; item: any | null }) => void;
     imageSearchTerm: string;
@@ -51,13 +53,21 @@ interface MobileUIProps {
     handleAssignImage: (itemId: string, imageId: string | null) => void;
 }
 
+const FIXED_CATEGORIES = {
+    tieu_hao: { name: "Tiêu hao" },
+    trang_bi: { name: "Trang bị" },
+    phap_bao: { name: "Pháp bảo" },
+    cong_phap: { name: "Công pháp" },
+    npc: { name: "NPC" }
+};
+
 export const MobileUI: React.FC<MobileUIProps> = (props) => {
     const {
         handleBackClick, handleImportClick, handleSave, handleUpdate, isLoading,
         mobileTab, setMobileTab, itemSearchTerm, setItemSearchTerm, nguHanhFilter,
         setNguHanhFilter, expandedCategory, setExpandedCategory, manifest,
         toggleSelectAllItems, filteredAndSortedItems, selectedItemIds,
-        handleAiGenerateTagsFromSelection, toggleItemSelection, setImgLibModal,
+        handleAiGenerateTagsFromSelection, handleBulkAssignImages, toggleItemSelection, setImgLibModal,
         imageSearchTerm, setImageSearchTerm, imageUrl, setImageUrl, handleAddUrlImage,
         setTagMgmtModal, tagSearchTerm, setTagSearchTerm, newTagCategory,
         setNewTagCategory, newTag, setNewTag, handleAddTag, editingTag,
@@ -122,9 +132,8 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                             <input type="text" value={imageSearchTerm} onChange={e => setImageSearchTerm(e.target.value)} placeholder="Tìm ảnh..." className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-sm"/>
                         </div>
                         <div className="flex-1 overflow-y-auto styled-scrollbar p-4">
-                            {Object.entries(manifest.categories).map(([catKey, category]) => (
+                            {Object.entries(FIXED_CATEGORIES).map(([catKey, category]) => (
                                 <details key={catKey} className="bg-slate-800/50 rounded-lg border border-slate-700 mb-2" open>
-                                    {/* FIX: Check if category exists before accessing its name property */}
                                     <summary className="p-2 font-bold text-yellow-200 cursor-pointer">{category?.name}</summary>
                                     <div className="p-2 border-t border-slate-700">
                                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -166,17 +175,21 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         </div>
                          <select value={expandedCategory || ''} onChange={(e) => setExpandedCategory(e.target.value || null)} className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm mb-2">
                             <option value="">Tất cả nhóm</option>
-                            {/* FIX: Check if cat exists before accessing its name property */}
-                            {Object.entries(manifest.categories).map(([key, cat]) => <option key={key} value={key}>{cat?.name}</option>)}
+                            {Object.entries(FIXED_CATEGORIES).map(([key, cat]) => <option key={key} value={key}>{cat?.name}</option>)}
                         </select>
                          <div className="px-2 py-3 border-y border-slate-700/50 flex justify-between items-center">
                             <label className="flex items-center gap-2 text-sm cursor-pointer">
                                 <input type="checkbox" onChange={toggleSelectAllItems} checked={filteredAndSortedItems.length > 0 && selectedItemIds.size === filteredAndSortedItems.length} className="h-4 w-4 rounded bg-slate-600 border-slate-500 text-yellow-400 focus:ring-yellow-400" />
                                 Chọn tất cả ({selectedItemIds.size})
                             </label>
-                            <button onClick={handleAiGenerateTagsFromSelection} disabled={isLoading || selectedItemIds.size === 0} className="flex items-center justify-center gap-2 px-3 py-1.5 font-bold rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-sm shadow-lg transition-all disabled:opacity-50">
-                                <Icons.CpuChipIcon className="w-5 h-5"/> AI tạo nhãn
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button onClick={handleAiGenerateTagsFromSelection} disabled={isLoading || selectedItemIds.size === 0} className="flex items-center justify-center gap-2 px-3 py-1.5 font-bold rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-sm shadow-lg transition-all disabled:opacity-50">
+                                    <Icons.CpuChipIcon className="w-5 h-5"/> AI tạo nhãn
+                                </button>
+                                <button onClick={handleBulkAssignImages} disabled={isLoading || selectedItemIds.size === 0} className="flex items-center justify-center gap-2 px-3 py-1.5 font-bold rounded-lg bg-gradient-to-br from-green-500 to-teal-600 text-white text-sm shadow-lg transition-all disabled:opacity-50">
+                                    <Icons.SparklesIcon className="w-5 h-5"/> AI Gán Ảnh
+                                </button>
+                            </div>
                         </div>
                         {filteredAndSortedItems.map(item => (
                             <div key={item.id} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700 flex items-start gap-3">
@@ -200,9 +213,8 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                 {mobileTab === 'library' && (
                     <div className="p-2 space-y-2">
                         <input type="text" placeholder="Tìm ảnh..." value={imageSearchTerm} onChange={e => setImageSearchTerm(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm mb-2" />
-                        {Object.entries(manifest.categories).map(([catKey, category]) => (
+                        {Object.entries(FIXED_CATEGORIES).map(([catKey, category]) => (
                             <details key={catKey} className="bg-slate-800/50 rounded-lg border border-slate-700" open>
-                                {/* FIX: Check if category exists before accessing its name property */}
                                 <summary className="p-2 font-bold text-yellow-200 cursor-pointer">{category?.name}</summary>
                                 <div className="p-2 border-t border-slate-700 space-y-2">
                                     <div className="flex gap-2">
@@ -234,7 +246,6 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                                                         )}
                                                     </h5>
                                                     <div className="flex flex-wrap gap-0.5 mt-0.5">
-                                                         {/* FIX: Check if image.tags exists before accessing it */}
                                                         {image.tags && image.tags.length > 0 ? image.tags.slice(0, 3).map(tag => (
                                                             <span key={tag} className="text-[9px] bg-slate-700 px-1 py-0.5 rounded">{tag}</span>
                                                         )) : <span className="text-[9px] text-slate-400 italic">Chưa có nhãn</span>}
@@ -253,8 +264,7 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         <input type="text" value={tagSearchTerm} onChange={e => setTagSearchTerm(e.target.value)} placeholder="Tìm nhãn..." className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-2 text-sm"/>
                         <div className="flex gap-2">
                             <select value={newTagCategory} onChange={(e) => setNewTagCategory(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
-                                {/* FIX: Check if cat exists before accessing its name property */}
-                                {Object.entries(manifest.categories).map(([key, cat]) => <option key={key} value={key}>{cat?.name}</option>)}
+                                {Object.entries(FIXED_CATEGORIES).map(([key, cat]) => <option key={key} value={key}>{cat?.name}</option>)}
                             </select>
                             <input type="text" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddTag(newTag, newTagCategory)} placeholder="Nhãn mới..." className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-2 text-sm"/>
                             <button onClick={() => handleAddTag(newTag, newTagCategory)} className="p-2 bg-green-600 rounded-lg"><Icons.PlusCircleIcon className="w-6 h-6"/></button>
@@ -262,7 +272,6 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto styled-scrollbar">
                             {Object.entries(manifest.categories).map(([catKey, category]) => (
                                  <div key={catKey}>
-                                    {/* FIX: Check if category exists before accessing its name property */}
                                     <h4 className="font-bold text-yellow-200 mb-2">{category?.name}</h4>
                                     <div className="space-y-1">
                                         {category.tags.filter(tag => tag.toLowerCase().includes(tagSearchTerm.toLowerCase())).map(tag => (

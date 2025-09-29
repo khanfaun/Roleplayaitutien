@@ -25,6 +25,14 @@ interface TagManagerPanelProps {
     handleAiOptimizeTags: () => void;
 }
 
+const FIXED_CATEGORIES = {
+    tieu_hao: { name: "Tiêu hao" },
+    trang_bi: { name: "Trang bị" },
+    phap_bao: { name: "Pháp bảo" },
+    cong_phap: { name: "Công pháp" },
+    npc: { name: "NPC" }
+};
+
 export const TagManagerPanel: React.FC<TagManagerPanelProps> = ({
     expandedCategory,
     manifest,
@@ -48,11 +56,11 @@ export const TagManagerPanel: React.FC<TagManagerPanelProps> = ({
 }) => {
     return (
         <div className="w-full md:w-[25%] p-4 flex flex-col h-full">
-            <h3 className="text-lg font-bold text-yellow-300 mb-2 flex-shrink-0">Quản lý Nhãn {expandedCategory ? `(${manifest.categories[expandedCategory]?.name})` : '(Tất cả)'}</h3>
+            <h3 className="text-lg font-bold text-yellow-300 mb-2 flex-shrink-0">Quản lý Nhãn {expandedCategory ? `(${FIXED_CATEGORIES[expandedCategory as keyof typeof FIXED_CATEGORIES]?.name})` : '(Tất cả)'}</h3>
              <div className="mb-2 flex-shrink-0"> <input type="text" value={tagSearchTerm} onChange={e => setTagSearchTerm(e.target.value)} placeholder="Tìm nhãn..." className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-sm"/> </div>
             
             <label className="text-xs text-slate-400 mb-1 block">
-                 {expandedCategory ? `Thêm nhãn vào nhóm "${manifest.categories[expandedCategory]?.name}"` : 'Chọn một nhóm để thêm nhãn'}
+                 {expandedCategory ? `Thêm nhãn vào nhóm "${FIXED_CATEGORIES[expandedCategory as keyof typeof FIXED_CATEGORIES]?.name}"` : 'Chọn một nhóm để thêm nhãn'}
             </label>
             <div className="mb-2 flex-shrink-0 flex gap-2">
                  <input type="text" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddTag(newTag)} placeholder="Nhãn mới..." disabled={!expandedCategory} className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-sm disabled:cursor-not-allowed"/>

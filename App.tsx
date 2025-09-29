@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { ScenarioData } from './types';
+import type { ScenarioData, Item } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import { ScenarioSetup } from './components/ScenarioSetup';
 import { BreakthroughModal } from './components/BreakthroughModal';
@@ -173,7 +173,7 @@ const App: React.FC = () => {
                 isOpen={isPlayerImageModalOpen}
                 onClose={() => setIsPlayerImageModalOpen(false)}
                 // FIX: Pass a compatible object to the `item` prop.
-                item={{ name: game.gameState.player.name }}
+                item={{ id: 'player', name: game.gameState.player.name, description: 'Nhân vật chính', category: 'Vật phẩm' } as Item}
                 onAssign={game.handlePlayerImageChange}
             />
 

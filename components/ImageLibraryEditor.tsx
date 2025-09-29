@@ -385,6 +385,56 @@ export const ImageLibraryEditor: React.FC<ImageLibraryEditorProps> = ({ onBack }
         }
     };
 
+    const handleBulkAssignImages = async () => {
+        if (selectedItemIds.size === 0) return;
+
+        setIsLoading(true);
+        setLoadingMessage('AI đang gán ảnh cho các vật phẩm đã chọn...');
+
+        try {
+            if (!manifest) throw new Error("Manifest chưa được tải.");
+
+            const allSelectedItems = Array.from(selectedItemIds)
+                .map(id => thienThuItems.find(item => item.id === id))
+                .filter((item): item is NonNullable<typeof item> => !!item);
+
+            if (allSelectedItems.length === 0) {
+                throw new Error("Không tìm thấy vật phẩm nào được chọn.");
+            }
+            
+            const itemsToAssign = allSelectedItems.map((item: any) => ({
+                id: item.id,
+                name: item.name,
+                description: item.description,
+                category: manifest.categories[item.__type]?.name || item.__type
+            }));
+
+            const assignments = await geminiService.assignImagesInBulk(itemsToAssign, manifest.images);
+            
+            const assignmentsMap = new Map(assignments.map(a => [a.itemId, a.imageId]));
+
+            const updateList = (list: any[]) => list.map(item => {
+                const newImageId = assignmentsMap.get(item.id);
+                return newImageId ? { ...item, imageId: newImageId } : item;
+            });
+        
+            setVatPham(prev => updateList(prev));
+            setTrangBi(prev => updateList(prev));
+            setPhapBao(prev => updateList(prev));
+            setCongPhap(prev => updateList(prev));
+            setNpcs(prev => updateList(prev));
+
+            alert(`AI đã gán ảnh thành công cho ${assignments.length} vật phẩm.`);
+
+        } catch (error) {
+            console.error("Lỗi khi AI gán ảnh hàng loạt:", error);
+            alert(`Đã xảy ra lỗi: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setIsLoading(false);
+            setSelectedItemIds(new Set());
+        }
+    };
+
     const handleAiOptimizeTags = async () => {
         const categoryToOptimize = expandedCategory; // Use the one selected in desktop, or from the mobile view state
         if (!categoryToOptimize) {
@@ -501,6 +551,7 @@ export const ImageLibraryEditor: React.FC<ImageLibraryEditorProps> = ({ onBack }
                         filteredAndSortedItems={filteredAndSortedItems}
                         selectedItemIds={selectedItemIds}
                         handleAiGenerateTagsFromSelection={handleAiGenerateTagsFromSelection}
+                        handleBulkAssignImages={handleBulkAssignImages}
                         isLoading={isLoading}
                         itemSortOrder={itemSortOrder}
                         setItemSortOrder={setItemSortOrder}
@@ -555,6 +606,7 @@ export const ImageLibraryEditor: React.FC<ImageLibraryEditorProps> = ({ onBack }
                 filteredAndSortedItems={filteredAndSortedItems}
                 selectedItemIds={selectedItemIds}
                 handleAiGenerateTagsFromSelection={handleAiGenerateTagsFromSelection}
+                handleBulkAssignImages={handleBulkAssignImages}
                 toggleItemSelection={toggleItemSelection}
                 setImgLibModal={setImgLibModal}
                 imageSearchTerm={imageSearchTerm}

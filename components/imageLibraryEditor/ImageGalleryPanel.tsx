@@ -17,6 +17,14 @@ interface ImageGalleryPanelProps {
     setSelectedImage: (image: ThienThuImage) => void;
 }
 
+const FIXED_CATEGORIES = {
+    tieu_hao: { name: "Tiêu hao" },
+    trang_bi: { name: "Trang bị" },
+    phap_bao: { name: "Pháp bảo" },
+    cong_phap: { name: "Công pháp" },
+    npc: { name: "NPC" }
+};
+
 export const ImageGalleryPanel: React.FC<ImageGalleryPanelProps> = ({
     manifest,
     imageSearchTerm,
@@ -34,7 +42,7 @@ export const ImageGalleryPanel: React.FC<ImageGalleryPanelProps> = ({
             <h2 className="text-xl font-bold text-yellow-300 mb-2 flex-shrink-0">Thư Viện Ảnh</h2>
             <input type="text" placeholder="Tìm tên ảnh..." value={imageSearchTerm} onChange={e => setImageSearchTerm(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm mb-2 flex-shrink-0" />
             <div className="flex-1 overflow-y-auto styled-scrollbar pr-2 -mr-4 space-y-2">
-                 {Object.entries(manifest.categories).map(([catKey, category]) => (
+                 {Object.entries(FIXED_CATEGORIES).map(([catKey, category]) => (
                     <details key={catKey} className="bg-slate-800/50 rounded-lg border border-slate-700" open={expandedCategory === catKey || !expandedCategory}>
                         <summary className="p-2 flex items-center justify-between cursor-pointer" onClick={(e) => { e.preventDefault(); handleCategoryToggle(catKey); }}>
                             <div className="flex items-center gap-3">

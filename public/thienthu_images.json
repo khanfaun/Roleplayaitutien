@@ -2,19 +2,19 @@
   "categories": {
     "tieu_hao": {
       "name": "Tiêu hao",
-      "tags": ["đan dược", "hồi phục", "linh thảo", "vật liệu", "đột phá"]
+      "tags": ["đan dược", "thảo dược", "vật liệu", "khoáng thạch", "hồi phục", "linh thảo", "đột phá"]
     },
     "trang_bi": {
       "name": "Trang bị",
-      "tags": ["vũ khí", "kiếm", "hỏa", "giáp", "phòng ngự", "phụ kiện", "phàm phẩm", "áo choàng"]
+      "tags": ["vũ khí", "áo choàng", "giáp", "mũ", "găng tay", "giày", "phụ kiện", "trang sức", "kiếm", "đao", "giáo", "chùy", "thương"]
     },
     "phap_bao": {
       "name": "Pháp bảo",
-      "tags": ["hồ lô", "trận đồ", "pháp khí", "gương", "ấn", "hỏa"]
+      "tags": ["hồ lô", "trận đồ", "pháp khí", "gương", "ấn"]
     },
     "cong_phap": {
       "name": "Công pháp",
-      "tags": ["kiếm quyết", "tâm pháp", "cổ xưa", "luyện thể", "tu luyện", "dưỡng sinh"]
+      "tags": ["chiến đấu", "phòng thủ", "tu luyện", "tâm pháp", "thân pháp"]
     },
     "npc": {
       "name": "NPC",
@@ -22,37 +22,6 @@
     }
   },
   "images": [
-    {
-      "fileName": "assets/thienthu/cong_phap/cong_phap_1.png",
-      "category": "cong_phap",
-      "tags": [
-        "đan dược",
-        "hồi phục"
-      ]
-    },
-    {
-      "fileName": "assets/thienthu/cong_phap/cong_phap_2.png",
-      "category": "cong_phap",
-      "tags": [
-        "vũ khí",
-        "kiếm",
-        "hỏa"
-      ]
-    },
-    {
-      "fileName": "assets/thienthu/cong_phap/cong_phap_3.png",
-      "category": "cong_phap",
-      "tags": ["đan dược", "đột phá"]
-    },
-    {
-      "fileName": "assets/thienthu/cong_phap/cong_phap_4.png",
-      "category": "cong_phap",
-      "tags": ["linh thảo", "vật liệu"]
-    },
-    {
-      "fileName": "assets/thienthu/cong_phap/cong_phap_5.png",
-      "category": "cong_phap",
-      "tags": ["vũ khí", "kiếm", "phàm phẩm"]
-    }
+
   ]
 }
