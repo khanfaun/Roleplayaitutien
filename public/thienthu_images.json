@@ -23,7 +23,7 @@
   },
   "images": [
     {
-      "fileName": "cong_phap/cong_phap_1.png",
+      "fileName": "assets/thienthu/cong_phap/cong_phap_1.png",
       "category": "cong_phap",
       "tags": [
         "đan dược",
@@ -31,7 +31,7 @@
       ]
     },
     {
-      "fileName": "cong_phap/cong_phap_2.png",
+      "fileName": "assets/thienthu/cong_phap/cong_phap_2.png",
       "category": "cong_phap",
       "tags": [
         "vũ khí",
@@ -40,17 +40,17 @@
       ]
     },
     {
-      "fileName": "cong_phap/cong_phap_3.png",
+      "fileName": "assets/thienthu/cong_phap/cong_phap_3.png",
       "category": "cong_phap",
       "tags": ["đan dược", "đột phá"]
     },
     {
-      "fileName": "cong_phap/cong_phap_4.png",
+      "fileName": "assets/thienthu/cong_phap/cong_phap_4.png",
       "category": "cong_phap",
       "tags": ["linh thảo", "vật liệu"]
     },
     {
-      "fileName": "cong_phap/cong_phap_5.png",
+      "fileName": "assets/thienthu/cong_phap/cong_phap_5.png",
       "category": "cong_phap",
       "tags": ["vũ khí", "kiếm", "phàm phẩm"]
     }
