@@ -17,8 +17,6 @@ interface ScenarioSetupProps {
 }
 
 export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBack, isLoading }) => {
-    // FIX: All properties on 'setup' were erroring because useScenarioSetup was not fully implemented.
-    // The implementation of useScenarioSetup now correctly returns all necessary state and handlers.
     const setup = useScenarioSetup({ onStartGame });
 
     return (
@@ -36,7 +34,7 @@ export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBac
                 isOpen={setup.isPlayerImageModalOpen}
                 onClose={() => setup.setIsPlayerImageModalOpen(false)}
                 // FIX: Passed a compatible object to the `item` prop.
-                item={{ name: setup.playerName || 'Nhân Vật Chính' }}
+                item={{ id: 'player-setup', name: setup.playerName || 'Nhân Vật Chính', description: 'Nhân vật chính', category: 'Vật phẩm' }}
                 onAssign={(id) => setup.setPlayerImageId(id)}
             />
 

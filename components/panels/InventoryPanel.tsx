@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef } from 'react';
 import type { GameState, Recipe, Item, PlayerAttributes, ItemEffectDefinition } from '../../types';
 import { PLAYER_ATTRIBUTE_NAMES } from '../../constants';
@@ -7,6 +6,9 @@ import * as Icons from '../Icons';
 import { SmartTooltip } from '../SmartTooltip';
 import { ALL_ITEM_EFFECT_DEFINITIONS } from '../../data/effects';
 import { ImageAssignmentModal } from './ImageAssignmentModal';
+
+// FIX: Exported mapBackgroundImageUrl to centralize asset paths.
+export const mapBackgroundImageUrl = '/map_background.webp';
 
 // FIX: Exported EffectLabel to resolve an import error in ThienThuPanelContent.tsx.
 export const EffectLabel: React.FC<{ effectId: string }> = ({ effectId }) => {

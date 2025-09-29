@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef } from 'react';
 import type { GameState, WorldLocation, NpcCharacter } from '../../types';
 import { HomeIcon, UserIcon, ChevronRightIcon } from '../Icons';
-import { getImageUrl } from './InventoryPanel';
+import { getImageUrl, mapBackgroundImageUrl } from '../GamePanels';
 import * as Icons from '../Icons';
 
 const LocationNode: React.FC<{ 
@@ -39,7 +39,7 @@ const LocationNode: React.FC<{
                 {isDiscovered ? (
                     <>
                         {hasNpc && npc?.imageId ? (
-                            <img src={getImageUrl(npc.imageId)} alt={npc.name} className="w-full h-full object-cover rounded-full" />
+                            <img src={getImageUrl(npc.imageId) || ''} alt={npc.name} className="w-full h-full object-cover rounded-full" />
                         ) : (
                             <HomeIcon className="w-6 h-6 text-slate-300"/>
                         )}
@@ -133,7 +133,7 @@ export const LocationPanelContent: React.FC<{
     
     const currentMapLocation = currentMapViewId ? locationsById[currentMapViewId] : null;
     const currentMapIsDiscovered = currentMapViewId ? discoveredEntityIds.locations.includes(currentMapViewId) : true;
-    const mapBackgroundUrl = currentMapLocation?.imageId && currentMapIsDiscovered ? getImageUrl(currentMapLocation.imageId) : '/assets/map_background.jpg';
+    const mapBackgroundUrl = currentMapLocation?.imageId && currentMapIsDiscovered ? getImageUrl(currentMapLocation.imageId) : mapBackgroundImageUrl;
     const currentMapName = currentMapIsDiscovered ? currentMapLocation?.name : '??????';
     
     const handleMouseDown = (e: React.MouseEvent) => {

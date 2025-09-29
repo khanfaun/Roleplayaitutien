@@ -3,6 +3,7 @@ import type { InitialItem, InitialCongPhap, PlayerAttributes } from '../../../ty
 import * as Icons from '../../Icons';
 import { PLAYER_ATTRIBUTE_NAMES } from '../../../constants';
 import { EditableElementList, CollapsibleElement } from './ElementHelpers';
+import { getImageUrl } from '../../GamePanels';
 
 export const ItemsEditor: React.FC<{
     initialItems: InitialItem[],

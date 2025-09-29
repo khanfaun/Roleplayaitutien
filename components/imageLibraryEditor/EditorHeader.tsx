@@ -1,4 +1,6 @@
+
 import React from 'react';
+import * as Icons from '../Icons';
 
 interface EditorHeaderProps {
     handleBackClick: () => void;

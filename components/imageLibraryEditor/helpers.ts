@@ -12,13 +12,6 @@ export const getRankColor = (rank?: number) => {
     }
 };
 
-export const getImageUrl = (imageId: string | undefined) => {
-    if (!imageId) return null;
-    if (imageId.startsWith('http')) return imageId;
-    // Ensure the path is absolute from the root. This is more robust.
-    return imageId.startsWith('/') ? imageId : `/${imageId}`;
-};
-
 export const NGU_HANH_DISPLAY: Record<NguHanhType, { icon: string; name: string; colors: string }> = {
     kim: { icon: '⚙️', name: 'Kim', colors: 'bg-gray-400 text-black' },
     moc: { icon: '🌳', name: 'Mộc', colors: 'bg-green-500 text-white' },

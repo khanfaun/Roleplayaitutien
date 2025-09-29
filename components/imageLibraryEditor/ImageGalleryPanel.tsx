@@ -1,7 +1,8 @@
+
 import React from 'react';
 import type { ThienThuImage, ThienThuImageManifest } from '../../types';
-import * as Icons from '@/components/Icons';
-import { getImageUrl } from './helpers';
+import * as Icons from '../Icons';
+import { getImageUrl } from '../GamePanels';
 
 interface ImageGalleryPanelProps {
     manifest: ThienThuImageManifest;

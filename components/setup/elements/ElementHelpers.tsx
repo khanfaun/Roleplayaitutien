@@ -4,6 +4,7 @@ import type { InitialItem, InitialCongPhap, InitialNpc, InitialSect, ItemEffectD
 import * as Icons from '../../Icons';
 import { SmartTooltip } from '../../SmartTooltip';
 import { ALL_ITEM_EFFECT_DEFINITIONS } from '../../../data/effects';
+import { getImageUrl } from '../../GamePanels';
 
 // SHARED HELPERS & CONSTANTS
 export const rankMap: Record<number, string> = {
@@ -25,12 +26,6 @@ export const getRankColor = (rank?: number) => {
         case 6: return 'text-red-500';
         default: return 'text-white';
     }
-};
-
-export const getImageUrl = (imageId: string | undefined) => {
-    if (!imageId) return null;
-    if (imageId.startsWith('http')) return imageId;
-    return imageId.startsWith('/') ? imageId : `/${imageId}`;
 };
 
 export const NGU_HANH_DISPLAY: Record<NguHanhType, { icon: string; name: string; colors: string }> = {

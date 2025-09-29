@@ -1,15 +1,19 @@
+// FIX: Added `import React from 'react'` to resolve JSX namespace errors.
 import React, { useState, useRef, useEffect, useCallback, Dispatch, SetStateAction, useMemo } from 'react';
 import type { InitialItem, InitialCongPhap, InitialSect, WorldLocation, PlayerAttributes, EquipmentType, NguHanhType, CultivationTier, DestinyDefinition } from '../../../types';
 import * as Icons from '../../Icons';
 import { PLAYER_ATTRIBUTE_NAMES } from '../../../constants';
 import { ImageAssignmentModal } from '../../GamePanels';
-import { EffectSelector, getRankColor, getImageUrl, rankMap } from './ElementHelpers';
+// FIX: Corrected import path for EffectSelector and other helpers.
+import { EffectSelector, rankMap } from '../elements/ElementHelpers';
 import { ItemForm } from './modals/ItemForm';
 import { EquipmentForm } from './modals/EquipmentForm';
 import { CongPhapForm } from './modals/CongPhapForm';
 import { NpcForm } from './modals/NpcForm';
 import { getSectDisplayName } from './shared';
 import { SectForm } from './modals/SectForm';
+// FIX: Corrected import path for getImageUrl.
+import { getImageUrl } from '../../GamePanels';
 
 const buildLocationOptions = (allLocations: WorldLocation[], currentItem?: WorldLocation) => {
     type TreeLocation = WorldLocation & { children: TreeLocation[] };
@@ -86,7 +90,6 @@ export const ElementModal = ({ modalState, onClose, onSave, allSects = [], allWo
             controllingSectIds: [],
             level: 1,
             sovereigntyType: 'autonomous',
-// FIX: Removed nonexistent 'connections' property from the defaults object to resolve a type error.
         };
         const initialData = modalState.data 
             ? { ...defaults, ...modalState.data, attributes: { ...defaults.attributes, ...(modalState.data.attributes || {}) } }
@@ -155,7 +158,7 @@ export const ElementModal = ({ modalState, onClose, onSave, allSects = [], allWo
         onSave(finalData);
     };
     
-    const renderField = (id: string, label: string, type: 'text' | 'textarea' | 'number' | 'select' | 'checkbox' | 'select-tree', options?: any, placeholder?: string, disabled: boolean = false) => (
+    const renderField = (id: string, label: string, type: 'text' | 'textarea' | 'number' | 'select' | 'checkbox' | 'select-tree', options?: any, placeholder?: string, disabled: boolean = false): JSX.Element => (
         <div key={id}>
             {type !== 'checkbox' && <label htmlFor={id} className="block text-sm font-medium text-yellow-300 mb-1">{label}</label>}
             {type === 'text' && <input id={id} type="text" value={formData[id] || ''} onChange={e => handleChange(id, e.target.value)} placeholder={placeholder || ''} className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 disabled:bg-slate-900/50 disabled:cursor-not-allowed" disabled={disabled} />}

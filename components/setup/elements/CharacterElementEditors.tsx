@@ -4,6 +4,7 @@ import * as Icons from '../../Icons';
 import { EditableElementList, CollapsibleElement } from './ElementHelpers';
 import { getSectDisplayName } from './shared';
 import { findRealmDetails } from '../../../utils/npcCalculations';
+import { getImageUrl } from '../../GamePanels';
 
 export const NpcEditor: React.FC<{
     initialNpcs: InitialNpc[],

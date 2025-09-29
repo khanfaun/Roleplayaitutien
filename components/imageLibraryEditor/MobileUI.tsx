@@ -1,7 +1,9 @@
+
 import React from 'react';
 import type { ThienThuImage, ThienThuImageManifest, InitialItem, InitialCongPhap, InitialNpc, NguHanhType, PlayerAttributes } from '../../types';
-import * as Icons from '@/components/Icons';
-import { getImageUrl, getRankColor, NGU_HANH_DISPLAY } from './helpers';
+import * as Icons from '../Icons';
+import { getRankColor, NGU_HANH_DISPLAY } from './helpers';
+import { getImageUrl } from '../GamePanels';
 
 interface MobileUIProps {
     handleBackClick: () => void;
@@ -92,7 +94,7 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                                         ) : (
                                             <>
                                                 <label className="flex items-center gap-2 cursor-pointer flex-grow">
-                                                    <input type="checkbox" checked={tagMgmtModal.image!.tags.includes(tag)} onChange={() => handleTagToggle(tag, tagMgmtModal.image!)} className="h-4 w-4 rounded bg-slate-600 border-slate-500 text-yellow-400 focus:ring-yellow-500"/>
+                                                    <input type="checkbox" checked={tagMgmtModal.image!.tags.includes(tag)} onChange={() => handleTagToggle(tag, tagMgmtModal.image!)} className="h-4 w-4 rounded bg-slate-600 border-slate-500 text-yellow-400 focus:ring-yellow-400"/>
                                                     <span className="text-sm">{tag}</span>
                                                 </label>
                                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -128,7 +130,7 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                                             {manifest.images.filter(img => img.category === catKey && img.fileName.toLowerCase().includes(imageSearchTerm.toLowerCase())).map(image => (
                                                 <button key={image.fileName} onClick={() => { handleAssignImage(imgLibModal.item!.id, image.fileName); setImgLibModal({isOpen: false, item: null}); }} className="aspect-square rounded-lg overflow-hidden border-2 border-slate-600 hover:border-yellow-400 transition-colors">
-                                                    <img src={getImageUrl(image.fileName)} alt={image.fileName} className="w-full h-full object-cover"/>
+                                                    <img src={getImageUrl(image.fileName) || ''} alt={image.fileName} className="w-full h-full object-cover"/>
                                                 </button>
                                             ))}
                                         </div>
@@ -169,7 +171,7 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                         </select>
                          <div className="px-2 py-3 border-y border-slate-700/50 flex justify-between items-center">
                             <label className="flex items-center gap-2 text-sm cursor-pointer">
-                                <input type="checkbox" onChange={toggleSelectAllItems} checked={filteredAndSortedItems.length > 0 && selectedItemIds.size === filteredAndSortedItems.length} className="h-4 w-4 rounded bg-slate-600 border-slate-500 text-yellow-400 focus:ring-yellow-500" />
+                                <input type="checkbox" onChange={toggleSelectAllItems} checked={filteredAndSortedItems.length > 0 && selectedItemIds.size === filteredAndSortedItems.length} className="h-4 w-4 rounded bg-slate-600 border-slate-500 text-yellow-400 focus:ring-yellow-400" />
                                 Chọn tất cả ({selectedItemIds.size})
                             </label>
                             <button onClick={handleAiGenerateTagsFromSelection} disabled={isLoading || selectedItemIds.size === 0} className="flex items-center justify-center gap-2 px-3 py-1.5 font-bold rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-sm shadow-lg transition-all disabled:opacity-50">
@@ -181,7 +183,7 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                                 <input type="checkbox" checked={selectedItemIds.has(item.id)} onChange={() => toggleItemSelection(item.id)} className="mt-1 h-5 w-5 rounded bg-slate-600 border-slate-500 text-yellow-400 focus:ring-yellow-500 flex-shrink-0"/>
                                 <div className="flex-grow flex items-start gap-3">
                                     <div className="w-16 h-16 bg-slate-700 rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                                        {item.imageId ? <img src={getImageUrl(item.imageId)} alt={item.name} className="w-full h-full object-cover"/> : <Icons.QuestionMarkCircleIcon className="w-8 h-8 text-slate-500"/>}
+                                        {item.imageId ? <img src={getImageUrl(item.imageId) || ''} alt={item.name} className="w-full h-full object-cover"/> : <Icons.QuestionMarkCircleIcon className="w-8 h-8 text-slate-500"/>}
                                     </div>
                                     <div className="flex-grow min-w-0 text-xs space-y-1">
                                         <p><strong className={`text-sm ${getRankColor('rank' in item && typeof item.rank === 'number' ? item.rank : undefined)}`}>{item.name}</strong></p>
@@ -222,7 +224,7 @@ export const MobileUI: React.FC<MobileUIProps> = (props) => {
                                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                                         {manifest.images.filter(img => img.category === catKey && img.fileName.toLowerCase().includes(imageSearchTerm.toLowerCase())).map(image => (
                                             <div key={image.fileName} onClick={() => setTagMgmtModal({ isOpen: true, image: image })} className="aspect-square rounded-lg overflow-hidden border-2 border-slate-600 hover:border-yellow-400 transition-colors relative group bg-slate-800 flex flex-col cursor-pointer">
-                                                <img src={getImageUrl(image.fileName)} alt={image.fileName} className="w-full h-full object-cover"/>
+                                                <img src={getImageUrl(image.fileName) || ''} alt={image.fileName} className="w-full h-full object-cover"/>
                                                 <div className="absolute bottom-0 left-0 right-0 p-1 bg-black/60 backdrop-blur-sm">
                                                     <h5 className="text-[10px] text-white font-semibold truncate">
                                                         {image.fileName.startsWith('http') ? (

@@ -1,6 +1,8 @@
+
+
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { ThienThuImage, ThienThuImageManifest, InitialItem, InitialCongPhap, InitialNpc, NguHanhType, PlayerAttributes } from '../types';
-import * as Icons from '@/components/Icons';
+import * as Icons from './Icons';
 import * as geminiService from '../services/geminiService';
 import { THIEN_THU_VAT_PHAM_TIEU_HAO, THIEN_THU_TRANG_BI, THIEN_THU_PHAP_BAO, THIEN_THU_CONG_PHAP } from '../data/thienThu';
 import { PLAYER_ATTRIBUTE_NAMES } from '../constants';
@@ -63,22 +65,22 @@ export const ImageLibraryEditor: React.FC<ImageLibraryEditorProps> = ({ onBack }
     const [newTagCategory, setNewTagCategory] = useState<string>('');
 
 
-    const loadData = useCallback(() => {
-        fetch('/thienthu_images.json')
-            .then(response => {
-                if (!response.ok) { throw new Error('Manifest not found'); }
-                return response.json();
-            })
-            .then(data => {
-                setManifest(data);
-                if (data.categories && Object.keys(data.categories).length > 0) {
-                    setNewTagCategory(Object.keys(data.categories)[0]);
-                }
-            })
-            .catch(error => {
-                console.warn("thienthu_images.json not found. Using empty data.", error);
-                setManifest({ categories: {}, images: [] });
-            });
+    const loadData = useCallback(async () => {
+        try {
+            const manifestResponse = await fetch('/thienthu_images.json');
+            if (!manifestResponse.ok) {
+                throw new Error('Failed to load image manifest.');
+            }
+            const data: ThienThuImageManifest = await manifestResponse.json();
+            setManifest(data);
+            if (data.categories && Object.keys(data.categories).length > 0) {
+                setNewTagCategory(Object.keys(data.categories)[0]);
+            }
+        } catch (err) {
+            console.error("Error loading image manifest:", err);
+            setManifest({ categories: {}, images: [] });
+        }
+        
         try {
             const saved = localStorage.getItem('customThienThuItems');
             const initialThienThu = saved ? JSON.parse(saved) : {

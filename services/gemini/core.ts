@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 
 export let ai: GoogleGenAI | null = null;
 export const model = 'gemini-2.5-flash';
@@ -32,8 +32,8 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
         const tempAi = new GoogleGenAI({ apiKey });
         // Make a simple, non-streaming call to validate the key.
         await tempAi.models.generateContent({
-            model: model,
-            contents: 'Hi',
+            model: 'gemini-2.5-flash',
+            contents: 'Hi'
         });
         return true;
     } catch (e) {
@@ -50,8 +50,8 @@ export async function callGemini<T>(prompt: string, responseSchema: any): Promis
     
     try {
         console.log("Calling Gemini with prompt:", prompt.substring(0, 200) + '...');
-        const response = await ai.models.generateContent({
-            model: model,
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
                 systemInstruction: systemInstruction,

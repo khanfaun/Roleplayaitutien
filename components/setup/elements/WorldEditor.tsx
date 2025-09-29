@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { WorldLocation, InitialSect } from '../../../types';
 import * as Icons from '../../Icons';
-import { getImageUrl } from './ElementHelpers';
+import { getImageUrl } from '../../GamePanels';
 
 const LOCATION_TYPE_COLORS: Record<string, string> = {
     'Quần Cư': 'bg-sky-600 text-white',

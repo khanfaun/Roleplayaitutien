@@ -233,7 +233,8 @@ export const ScenarioTab: React.FC<ScenarioTabProps> = ({
                     title="Các Giai Đoạn Cốt Truyện"
                     items={scenarioStages}
                     onUpdate={(id, text) => setScenarioStages(stages => stages.map(s => s.id === id ? { ...s, text } : s))}
-                    onAdd={text => setScenarioStages(stages => [...stages, { id: `stage_${Date.now()}`, text }])}
+                    // FIX: Add `completed: false` to the new stage object to match the ScenarioStage type.
+                    onAdd={text => setScenarioStages(stages => [...stages, { id: `stage_${Date.now()}`, text, completed: false }])}
                     onDelete={id => setScenarioStages(stages => stages.filter(s => s.id !== id))}
                     isCustomScenario={isCustomScenario}
                 />

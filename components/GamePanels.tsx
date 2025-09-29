@@ -10,7 +10,8 @@ export { CharacterPanelContent, DestinyLabel } from './panels/CharacterPanelCont
 export { LocationPanelContent } from './panels/LocationPanelContent';
 export { SectPanel, SectPanelContent } from './panels/SectPanel';
 export { DongPhuPanel } from './panels/DongPhuPanel';
-export { InventoryPanel, getImageUrl } from './panels/InventoryPanel';
+// FIX: Re-export mapBackgroundImageUrl from InventoryPanel to resolve the module export error.
+export { InventoryPanel, getImageUrl, mapBackgroundImageUrl } from './panels/InventoryPanel';
 export { HeThongPanel, HeThongPanelContent } from './panels/HeThongPanel';
 export { ManagementPanelContent } from './panels/ManagementPanelContent';
 export { ThienThuPanelContent } from './panels/ThienThuPanelContent';

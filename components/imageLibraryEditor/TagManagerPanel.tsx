@@ -1,6 +1,7 @@
+
 import React from 'react';
 import type { ThienThuImage, ThienThuImageManifest } from '../../types';
-import * as Icons from '@/components/Icons';
+import * as Icons from '../Icons';
 
 interface TagManagerPanelProps {
     expandedCategory: string | null;
