@@ -1,5 +1,5 @@
 import { Type } from "@google/genai";
-import type { InitialItem, InitialCongPhap } from '../../types';
+import type { InitialItem, InitialCongPhap, ThienThuImage } from '../../types';
 import { callGemini, ai, systemInstruction, model } from './core';
 
 export const generateTagsFromItems = async (allItems: (InitialItem | InitialCongPhap)[]): Promise<string[]> => {

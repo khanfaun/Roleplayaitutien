@@ -1,11 +1,10 @@
 import { Type } from "@google/genai";
 // FIX: Removed unused/non-existent types to resolve import errors.
-import type { Player, BoardSquare, Quest, CurrentEvent, ActionOutcome, WorldPhase, GameState, ScenarioData, PlayerAttributes, NguHanhType, InitialItem, InitialCongPhap, InitialNpc, InitialSect, WorldLocation } from '../../types';
-import { BOARD_SIZE, PLAYER_ATTRIBUTE_NAMES } from "../../constants";
+import type { Player, BoardSquare, Quest, CurrentEvent, ActionOutcome, WorldPhase, GameState, ScenarioData, InitialItem, InitialCongPhap, InitialNpc, InitialSect, WorldLocation } from '../../types';
+import { BOARD_SIZE } from "../../constants";
 import { callGemini } from './core';
 import {
     boardSquareSchema,
-    questSchemaWithId,
     currentEventSchema,
     worldPhaseSchema,
     questSchemaWithoutId,

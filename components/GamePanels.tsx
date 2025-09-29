@@ -5,6 +5,7 @@
 export { ImageAssignmentModal } from './panels/ImageAssignmentModal';
 export { StatusEffectsDisplay } from './panels/StatusEffectsDisplay';
 export { QuestPanelContent } from './panels/QuestPanelContent';
+export { QuestLogModal } from './panels/QuestLogModal';
 export { CharacterPanelContent, DestinyLabel } from './panels/CharacterPanelContent';
 export { LocationPanelContent } from './panels/LocationPanelContent';
 export { SectPanel, SectPanelContent } from './panels/SectPanel';

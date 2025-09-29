@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import type { useGameLogic } from '../../hooks/useGameLogic';
 import GameBoard from '../GameBoard';
@@ -48,13 +46,11 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
                 )}
                  {mobileTab === 'NPC' && (
                     <div className="h-full flex flex-col">
-                        {/* FIX: Added missing 'view' prop to satisfy NpcPanelContent's type definition. */}
                         <NpcPanelContent gameState={game.gameState} view={'list'} />
                     </div>
                 )}
                 {mobileTab === 'THE_GIOI' && (
                      <div className="h-full flex flex-col">
-                        {/* FIX: Added missing 'view' prop to satisfy WorldPanel's type definition. */}
                         <WorldPanel gameState={game.gameState} setCurrentMapViewId={game.setCurrentMapViewId} view={'map'} />
                      </div>
                 )}
@@ -70,7 +66,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
                  )}
                 {mobileTab === 'NHIEM_VU' && (
                     <div className="h-full flex flex-col">
-                        <QuestPanelContent quests={game.gameState.quests} />
+                        <QuestPanelContent gameState={game.gameState} />
                     </div>
                 )}
                 {mobileTab === 'THIEN_THU' && (
@@ -90,7 +86,6 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
                            {activeCenterTab === 'character' && <CharacterPanelContent gameState={game.gameState} onOpenSimulator={() => setIsSimulatorOpen(true)} />}
                            {activeCenterTab === 'inventory' && <InventoryPanel gameState={game.gameState} inventoryCounts={game.inventoryCounts} groupedConsumableItems={game.groupedConsumableItems} equipmentItems={game.equipmentItems} techniqueItems={game.techniqueItems} handleEquipItem={game.handleEquipItem} handleCraftItem={game.handleCraftItem} handleUseItem={game.handleUseItem} handlePlayerAction={(action) => game.handlePlayerAction(action, 'suggestion')} handleItemImageChange={game.handleItemImageChange} />}
                            {activeCenterTab === 'dongPhu' && <DongPhuPanel dongPhu={game.gameState.dongPhu} inventoryCounts={game.inventoryCounts} isLoading={game.gameState.isLoading} handleUpgradeBuilding={game.handleUpgradeBuilding} handlePlayerAction={(action) => game.handlePlayerAction(action, 'suggestion')}/>}
-                           {/* FIX: Pass missing `thienThu` and `onItemImageChange` props to ManagementPanelContent to fix a TypeScript error. */}
                            {activeCenterTab === 'management' && <ManagementPanelContent gameState={game.gameState} onRulesChange={(type, rules) => game.handleRulesChange(type, rules)} onJournalChange={(journal) => game.handleJournalEntriesChange(journal)} onScenarioUpdate={(updates) => game.handleScenarioUpdate(updates)} handleSaveGame={() => game.handleSaveGame()} handleLoadGame={(file) => game.handleLoadGame(file)} handleGoHome={() => game.goHome()} handleClearApiKey={() => game.clearApiKey()} thienThu={game.gameState.thienThu} onItemImageChange={game.handleThienThuItemImageChange} />}
                         </div>
                     </div>

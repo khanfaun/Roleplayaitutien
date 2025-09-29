@@ -1,7 +1,7 @@
 
 
 import * as geminiService from '../../services/geminiService';
-import type { GameState, ScenarioData, Player, Item, InitialItem, InitialCongPhap, NguHanhType, CultivationTier, NpcCharacter, WorldLocation } from '../../types';
+import type { GameState, ScenarioData, Player, Item, InitialItem, InitialCongPhap, NguHanhType, CultivationTier, NpcCharacter, WorldLocation, InitialSect } from '../../types';
 import { PLAYER_NAME, INITIAL_PLAYER_STATS } from '../../constants';
 import { calculateNpcStats } from '../../utils/npcCalculations';
 // FIX: Import types directly from 'react' to resolve 'React' namespace errors.
@@ -105,6 +105,10 @@ export const initializeGameLogic = async (
             for (const npc of setupData.initialNpcs) {
                 const npcCharacter = calculateNpcStats(npc, setupData.cultivationSystem, setupData.difficulty);
                 npcCharacter.currentLocationId = npc.initialLocationId || '';
+                if(npc.sectId) {
+                    const sect = setupData.initialSects.find(s => s.id === npc.sectId);
+                    if (sect) npcCharacter.sect = sect.name;
+                }
                 inGameNpcs.push(npcCharacter);
             }
         }

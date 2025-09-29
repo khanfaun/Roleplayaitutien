@@ -8,6 +8,17 @@ export type TechniqueType = 'Chiến đấu' | 'Phòng thủ' | 'Tu luyện' | '
 export type ConsumableType = 'Đan dược' | 'Thảo dược' | 'Vật liệu' | 'Khoáng thạch' | 'Khác';
 export type ItemType = 'Tiêu hao' | 'Nhiệm vụ' | 'Khác' | 'Trang bị' | 'Pháp bảo';
 export type RelationshipLevel = 'Thân Thiết Tột Cùng' | 'Đồng Minh / Tích Cực' | 'Trung Lập' | 'Mâu Thuẫn' | 'Thù Địch' | 'Sinh Tử Đại Địch';
+export type SectRankPermission = 
+    | 'view_treasury'
+    | 'request_resources'
+    | 'access_basic_techniques'
+    | 'access_advanced_techniques'
+    | 'access_core_techniques'
+    | 'manage_members'
+    | 'assign_tasks'
+    | 'upgrade_facilities'
+    | 'view_member_list';
+
 
 export interface Relationship {
     targetNpcId: string;
@@ -229,6 +240,19 @@ export interface InitialNpc {
     initialCongPhap?: InitialCongPhap[];
     imageId?: string;
 }
+export interface SectRank {
+    name: string;
+    contributionRequired: number;
+    permissions: SectRankPermission[];
+}
+
+export interface SectFacility {
+    id: string;
+    name: string;
+    level: number;
+    description: string;
+    upgradeCost: { itemId: string; quantity: number }[];
+}
 
 export interface InitialSect {
     id: string;
@@ -239,10 +263,13 @@ export interface InitialSect {
     locationId?: string;
     parentSectId?: string | null;
     relationships?: Partial<Record<'allied' | 'friendly' | 'neutral' | 'rival' | 'hostile', string[]>>;
-    // FIX: Added optional properties to match usage in constants.ts
     joinRequirement?: string;
     benefits?: string[];
+    ranks: SectRank[];
+    facilities: SectFacility[];
+    treasury: Record<string, number>;
 }
+
 
 // FIX: Add Sect type alias to resolve import errors in older files.
 export type Sect = InitialSect;
@@ -335,6 +362,7 @@ export interface HeThongQuest {
 }
 export interface HeThongState {
     quests: HeThongQuest[];
+    unlockedFeatures: string[]; // ví dụ: 'thienMenhBan', 'dongPhu'
 }
 export interface CombatState {
     enemyName: string;
@@ -419,7 +447,6 @@ export interface GameState {
     breakthroughReport: BreakthroughReport | null;
     scenarioSummary: string;
     scenarioStages: ScenarioStage[];
-    isThienMenhBanActive: boolean;
     cultivationSystem: CultivationTier[];
     thienThu: ThienThuData;
     worldData: {
@@ -482,13 +509,13 @@ export interface ActionOutcome {
         questId: string;
         newStatus?: 'Hoàn thành' | 'Thất bại';
         hiddenObjectiveCompleted?: boolean;
+        unlockSystemFeature?: string;
     }[];
     tribulationOutcome?: {
         success: boolean;
         nextStageId?: string;
         achievedQualityId?: string;
     };
-    activateThienMenhBan?: boolean;
     newStatusEffects?: { id: string; duration: number }[];
     removeStatusEffectIds?: string[];
     newLocationId?: string;

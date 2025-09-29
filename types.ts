@@ -156,7 +156,7 @@ export interface WorldPhase {
 
 export interface BoardSquare {
     id: number;
-    type: 'Khởi đầu' | 'Sự kiện' | 'May mắn' | 'Xui xẻo' | 'Cột mốc' | 'Kỳ Ngộ' | 'Tâm Ma' | 'Nhân Quả' | 'Thiên Cơ' | 'Thử Luyện' | 'Bế Quan' | 'Hồng Trần' | 'Linh Mạch' | 'Pháp Bảo' | 'Giao Dịch' | 'Tai Ương' | 'Ô Trống';
+    type: 'Khởi đầu' | 'Sự kiện' | 'May mắn' | 'Xui xẻo' | 'Cột mốc' | 'Kỳ Ngộ' | 'Tâm Ma' | 'Nhân Quả' | 'Thiên Cơ' | 'Thử Luyện' | 'Bế Quan' | 'Hồng Trần' | 'Linh Mạch' | 'Pháp Bảo' | 'Giao Dịch' | 'Tai Ưng' | 'Ô Trống';
     description: string;
 }
 

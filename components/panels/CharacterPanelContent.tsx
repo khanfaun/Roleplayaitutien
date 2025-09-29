@@ -90,7 +90,7 @@ export const CharacterPanelContent: React.FC<{ gameState: GameState; onOpenSimul
                     if(value !== undefined) {
                         const baseValue = player.attributes[key as keyof PlayerAttributes];
 // FIX: Cast value to number to fix arithmetic operation error.
-                        const change = Math.floor(baseValue * ((value as number) / 100));
+                        const change = Math.floor(baseValue * (Number(value) / 100));
                         attributes[key as keyof PlayerAttributes] += change;
                     }
                 }

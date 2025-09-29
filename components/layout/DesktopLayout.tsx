@@ -1,10 +1,8 @@
-
-
 import React, { useState, useMemo } from 'react';
 import type { useGameLogic } from '../../hooks/useGameLogic';
 import Panel from '../Panel';
 import { InteractionUI } from '../InteractionUI';
-import { QuestPanelContent, CharacterPanelContent, DongPhuPanel, InventoryPanel, ManagementPanelContent, HeThongPanel, SectPanelContent, StatusEffectsDisplay, DestinyLabel, ThienThuPanelContent, WorldPanel, NpcPanelContent } from '../GamePanels';
+import { QuestPanelContent, CharacterPanelContent, DongPhuPanel, InventoryPanel, ManagementPanelContent, HeThongPanel, SectPanelContent, StatusEffectsDisplay, DestinyLabel, ThienThuPanelContent, WorldPanel, NpcPanelContent, QuestLogModal } from '../GamePanels';
 import { HeartIcon, StarIcon, ZapIcon, BookOpenIcon, BackpackIcon, UserIcon, CalendarIcon, CogIcon, PencilIcon, CheckIcon, XIcon, BuildingLibraryIcon, MapIcon, RunningIcon, BrainIcon, ScrollIcon, HomeIcon, UsersIcon, ShieldCheckIcon, CpuChipIcon, SearchIcon } from '../Icons';
 import { DESTINY_DEFINITIONS } from '../../data/effects';
 
@@ -42,6 +40,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
     const [activeLeftPanelTab, setActiveLeftPanelTab] = useState<'quanHe' | 'theGioi' | 'nhiemVu'>('quanHe');
     const [isNpcGraphModalOpen, setIsNpcGraphModalOpen] = useState(false);
     const [isWorldMapModalOpen, setIsWorldMapModalOpen] = useState(false);
+    const [isQuestLogModalOpen, setIsQuestLogModalOpen] = useState(false);
 
     const leftPanelTabs = [
         { id: 'quanHe', label: 'Quan Hệ', icon: <UsersIcon className="w-5 h-5"/> },
@@ -62,6 +61,13 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                 icon: <SearchIcon />,
                 onClick: () => setIsWorldMapModalOpen(true),
                 title: "Xem Sơn Hà Đồ"
+            };
+        }
+        if (activeLeftPanelTab === 'nhiemVu') {
+            return {
+                icon: <SearchIcon />,
+                onClick: () => setIsQuestLogModalOpen(true),
+                title: "Xem Nhật Ký Nhiệm Vụ"
             };
         }
         return undefined;
@@ -90,6 +96,11 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                     </div>
                 </div>
             )}
+             <QuestLogModal 
+                isOpen={isQuestLogModalOpen}
+                onClose={() => setIsQuestLogModalOpen(false)}
+                gameState={game.gameState}
+            />
 
             {isWorldMapModalOpen && (
                 <div className="fixed inset-0 bg-black/70 z-40 flex items-center justify-center p-4" onClick={() => setIsWorldMapModalOpen(false)}>
@@ -262,7 +273,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                         <div className="flex-1 min-h-0 relative overflow-y-auto styled-scrollbar">
                             {activeLeftPanelTab === 'quanHe' && <NpcPanelContent gameState={game.gameState} view={'list'} />}
                             {activeLeftPanelTab === 'theGioi' && <WorldPanel gameState={game.gameState} setCurrentMapViewId={game.setCurrentMapViewId} view={'tree'} />}
-                            {activeLeftPanelTab === 'nhiemVu' && <QuestPanelContent quests={game.gameState.quests} />}
+                            {activeLeftPanelTab === 'nhiemVu' && <QuestPanelContent gameState={game.gameState} />}
                         </div>
                     </div>
                 </Panel>

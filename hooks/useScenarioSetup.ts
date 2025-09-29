@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+// FIX: Added `import React from 'react'` to resolve JSX error.
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { ScenarioData, ScenarioStage, InitialItem, InitialCongPhap, InitialNpc, InitialSect, WorldLocation, LinhCanQuality, NguHanhType, GameDifficulty, CultivationTier, Rule, DestinyDefinition, StatusEffect, ItemEffectDefinition, Player } from '../types';
 import * as Scenarios from '../data/scenarios';
 import { INITIAL_THIEN_DAO_RULES, INITIAL_CORE_MEMORY_RULES, INITIAL_PLAYER_STATS } from '../constants';

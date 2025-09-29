@@ -4,8 +4,8 @@ import { EffectSelector } from '../ElementHelpers';
 
 interface CongPhapFormProps {
     formData: any;
-    renderField: (id: string, label: string, type: 'text' | 'textarea' | 'number' | 'select', options?: any, placeholder?: string) => JSX.Element;
-    renderAttributeFields: () => JSX.Element;
+    renderField: (id: string, label: string, type: 'text' | 'textarea' | 'number' | 'select', options?: any, placeholder?: string) => React.ReactNode;
+    renderAttributeFields: () => React.ReactNode;
     handleChange: (field: string, value: any) => void;
     handleEffectIdsChange: (ids: string[]) => void;
     handleEffectSelectorOpen: () => void;
