@@ -1,5 +1,3 @@
-
-
 import * as geminiService from '../../services/geminiService';
 import type { GameState, ScenarioData, Player, Item, InitialItem, InitialCongPhap, NguHanhType, CultivationTier, NpcCharacter, WorldLocation, InitialSect } from '../../types';
 import { PLAYER_NAME, INITIAL_PLAYER_STATS } from '../../constants';
@@ -53,6 +51,7 @@ export const initializeGameLogic = async (
         let initialPlayer: Player = {
             ...INITIAL_PLAYER_STATS,
             name: setupData.playerName || PLAYER_NAME,
+            imageId: setupData.playerImageId,
             age: setupData.playerAge || 16,
             linhCan: `${setupData.linhCanQuality} linh căn`,
             nguHanh: (Object.keys(setupData.nguHanh) as NguHanhType[]).filter(key => setupData.nguHanh[key] > 0).map(key => `${key.charAt(0).toUpperCase() + key.slice(1)} (${setupData.nguHanh[key] * 20}%)`).join(', ') || 'Không có',
@@ -141,7 +140,7 @@ export const initializeGameLogic = async (
                 thienDaoRules: setupData.thienDaoRules,
                 coreMemoryRules: setupData.coreMemoryRules,
                 scenarioSummary: setupData.scenarioSummary,
-                scenarioStages: setupData.scenarioStages,
+                scenarioStages: setupData.scenarioStages.map(s => ({ ...s, completed: false })),
                 cultivationSystem: setupData.cultivationSystem,
                 worldData: { worldLocations: setupData.worldLocations, initialSects: setupData.initialSects, initialNpcs: setupData.initialNpcs },
                 inGameNpcs,
@@ -166,6 +165,15 @@ export const continueGameLogic = (deps: Setters & Pick<Callbacks, 'applyCustomTh
     if (savedGame) {
         try {
             const loadedState: Partial<GameState> = JSON.parse(savedGame);
+            
+            // Sanitize scenario stages to ensure `completed` property exists.
+            if (loadedState.scenarioStages) {
+                loadedState.scenarioStages = loadedState.scenarioStages.map(s => ({
+                    ...s,
+                    completed: s.completed || false
+                }));
+            }
+
             setGameState(prev => {
                 let finalState: GameState = { ...prev, ...loadedState, player: { ...prev.player, ...(loadedState.player || {}) }, dongPhu: { ...prev.dongPhu, ...(loadedState.dongPhu || {}) }, heThong: { ...prev.heThong, ...(loadedState.heThong || {}) }, thienThu: { ...prev.thienThu, ...(loadedState.thienThu || {}) }, worldData: { ...prev.worldData, ...(loadedState.worldData || {}) } };
                 return applyCustomThienThu(finalState);

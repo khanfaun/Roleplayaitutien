@@ -4,9 +4,14 @@ import { LinhCanSelector } from './character/LinhCanSelector';
 import { NguHanhSelector } from './character/NguHanhSelector';
 import { DestinySelector } from './character/DestinySelector';
 import { getSectDisplayName } from './elements/shared';
+import { getImageUrl } from '../GamePanels';
+import { PencilIcon, UserIcon } from '../Icons';
+
 
 interface CharacterTabProps {
     playerName: string; setPlayerName: (value: string) => void;
+    playerImageId?: string;
+    onOpenImageModal: () => void;
     playerAge: number; setPlayerAge: (value: number) => void;
     playerBiography: string; setPlayerBiography: (value: string) => void;
     playerGoals: string; setPlayerGoals: (value: string) => void;
@@ -26,7 +31,7 @@ interface CharacterTabProps {
 }
 
 export const CharacterTab: React.FC<CharacterTabProps> = ({
-    playerName, setPlayerName, playerAge, setPlayerAge, playerBiography, setPlayerBiography, playerGoals, setPlayerGoals,
+    playerName, setPlayerName, playerImageId, onOpenImageModal, playerAge, setPlayerAge, playerBiography, setPlayerBiography, playerGoals, setPlayerGoals,
     enableHeThong, setEnableHeThong, enableAdultContent, setEnableAdultContent,
     linhCanQuality, setLinhCanQuality, nguHanh, setNguHanh, difficulty,
     selectedDestinyIds, setSelectedDestinyIds, destinyDefs,
@@ -56,9 +61,26 @@ export const CharacterTab: React.FC<CharacterTabProps> = ({
             <div className="grid md:grid-cols-2 gap-4">
                 {/* --- LEFT COLUMN --- */}
                 <div className="space-y-4">
-                    <div>
-                        <label htmlFor="player-name" className="block text-sm font-medium text-yellow-300 mb-1">Tên Nhân Vật</label>
-                        <input id="player-name" type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="Ví dụ: Vương Lâm, Hàn Lập..." className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-yellow-500" />
+                     <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                            <label className="block text-sm font-medium text-yellow-300 mb-1 text-center">Ảnh Đại Diện</label>
+                            <div className="w-24 h-24 bg-slate-700 rounded-lg overflow-hidden relative group">
+                                {playerImageId ? <img src={getImageUrl(playerImageId) || ''} alt="Player Avatar" className="w-full h-full object-cover" /> : <UserIcon className="w-full h-full text-slate-500 p-2"/>}
+                                <button type="button" onClick={onOpenImageModal} className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <PencilIcon className="w-8 h-8 text-white"/>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex-grow space-y-4">
+                            <div>
+                                <label htmlFor="player-name" className="block text-sm font-medium text-yellow-300 mb-1">Tên Nhân Vật</label>
+                                <input id="player-name" type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="Ví dụ: Vương Lâm, Hàn Lập..." className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-yellow-500" />
+                            </div>
+                            <div>
+                                <label htmlFor="player-age" className="block text-sm font-medium text-yellow-300 mb-1">Tuổi Khởi Đầu</label>
+                                <input id="player-age" type="number" value={playerAge} onChange={(e) => setPlayerAge(parseInt(e.target.value, 10) || 16)} min="1" className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-yellow-500" />
+                            </div>
+                        </div>
                     </div>
                      <LinhCanSelector value={linhCanQuality} onChange={setLinhCanQuality} />
                      <div>
@@ -70,10 +92,6 @@ export const CharacterTab: React.FC<CharacterTabProps> = ({
                             disabled 
                             className="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-cyan-300 font-bold cursor-not-allowed"
                         />
-                    </div>
-                     <div>
-                        <label htmlFor="player-age" className="block text-sm font-medium text-yellow-300 mb-1">Tuổi Khởi Đầu</label>
-                        <input id="player-age" type="number" value={playerAge} onChange={(e) => setPlayerAge(parseInt(e.target.value, 10) || 16)} min="1" className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-yellow-500" />
                     </div>
                      <div>
                         <label htmlFor="starting-cultivation-stage" className="block text-sm font-medium text-yellow-300 mb-1">Cảnh giới khởi đầu</label>

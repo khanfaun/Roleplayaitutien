@@ -25,6 +25,7 @@ export const useScenarioSetup = ({ onStartGame }: UseScenarioSetupProps) => {
 
     // Character Tab State
     const [playerName, setPlayerName] = useState('');
+    const [playerImageId, setPlayerImageId] = useState<string | undefined>();
     const [playerAge, setPlayerAge] = useState(16);
     const [playerBiography, setPlayerBiography] = useState('');
     const [playerGoals, setPlayerGoals] = useState('');
@@ -59,6 +60,7 @@ export const useScenarioSetup = ({ onStartGame }: UseScenarioSetupProps) => {
 
     // Stats Simulator State
     const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
+    const [isPlayerImageModalOpen, setIsPlayerImageModalOpen] = useState(false);
     const [simulatorSelection, setSimulatorSelection] = useState<{ tierId: string; majorId: string; minorId: string; } | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -108,7 +110,7 @@ export const useScenarioSetup = ({ onStartGame }: UseScenarioSetupProps) => {
     const [itemEffectDefs, setItemEffectDefs] = useState<Record<string, ItemEffectDefinition>>(() => JSON.parse(JSON.stringify(ALL_ITEM_EFFECT_DEFINITIONS)));
 
     const clearAllData = useCallback(() => {
-        setScenarioName(''); setPlayerName(''); setPlayerAge(16); setPlayerBiography(''); setPlayerGoals('');
+        setScenarioName(''); setPlayerName(''); setPlayerImageId(undefined); setPlayerAge(16); setPlayerBiography(''); setPlayerGoals('');
         setEnableHeThong(true); setEnableAdultContent(false); setLinhCanQuality('Phàm Linh Căn');
         setNguHanh(Scenarios.EMPTY_NGU_HANH); setDifficulty('Dễ'); setSelectedDestinyIds([]);
         setPlayerSectId(null); setPlayerSectRank(null); setScenarioSummary(''); setScenarioStages([]);
@@ -120,13 +122,13 @@ export const useScenarioSetup = ({ onStartGame }: UseScenarioSetupProps) => {
     }, []);
 
     const loadFullScenarioData = useCallback((data: ScenarioData) => {
-        setScenarioName(data.scenarioName || ''); setPlayerName(data.playerName); setPlayerAge(data.playerAge || 16);
+        setScenarioName(data.scenarioName || ''); setPlayerName(data.playerName); setPlayerImageId(data.playerImageId); setPlayerAge(data.playerAge || 16);
         setPlayerBiography(data.playerBiography || ''); setPlayerGoals(data.playerGoals || '');
         setEnableHeThong(data.enableHeThong ?? true); setEnableAdultContent(data.enableAdultContent ?? false);
         setLinhCanQuality(data.linhCanQuality || 'Phàm Linh Căn'); setNguHanh(data.nguHanh || Scenarios.DEFAULT_NGU_HANH);
         setDifficulty(data.difficulty || 'Bình thường'); setSelectedDestinyIds(data.selectedDestinyIds || []);
         setPlayerSectId(data.playerSectId || null); setPlayerSectRank(data.playerSectRank || null);
-        setScenarioSummary(data.scenarioSummary); setScenarioStages(data.scenarioStages);
+        setScenarioSummary(data.scenarioSummary); setScenarioStages(data.scenarioStages as ScenarioStage[]);
         
         const scenarioRules = data.thienDaoRules || [];
         const combinedRules = [...INITIAL_THIEN_DAO_RULES, ...scenarioRules];
@@ -262,7 +264,7 @@ export const useScenarioSetup = ({ onStartGame }: UseScenarioSetupProps) => {
         }
 
         onStartGame({
-            scenarioName, playerName, playerAge, playerBiography, playerGoals, enableHeThong, enableAdultContent,
+            scenarioName, playerName, playerImageId, playerAge, playerBiography, playerGoals, enableHeThong, enableAdultContent,
             linhCanQuality, nguHanh, difficulty, selectedDestinyIds, playerSectId, playerSectRank,
             scenarioSummary, scenarioStages, thienDaoRules, coreMemoryRules,
             initialItems, initialTrangBi, initialPhapBao, initialCongPhap, initialNpcs,
@@ -275,7 +277,7 @@ export const useScenarioSetup = ({ onStartGame }: UseScenarioSetupProps) => {
 
     const handleSaveSetup = () => {
         const setupData: ScenarioData = {
-            scenarioName, playerName, playerAge, playerBiography, playerGoals, enableHeThong, enableAdultContent,
+            scenarioName, playerName, playerImageId, playerAge, playerBiography, playerGoals, enableHeThong, enableAdultContent,
             linhCanQuality, nguHanh, difficulty, selectedDestinyIds, playerSectId, playerSectRank,
             scenarioSummary, scenarioStages, thienDaoRules, coreMemoryRules,
             initialItems, initialTrangBi, initialPhapBao, initialCongPhap, initialNpcs,
@@ -350,7 +352,7 @@ export const useScenarioSetup = ({ onStartGame }: UseScenarioSetupProps) => {
     };
 
     return {
-        mainTab, setMainTab, playerName, setPlayerName, playerAge, setPlayerAge,
+        mainTab, setMainTab, playerName, setPlayerName, playerImageId, setPlayerImageId, playerAge, setPlayerAge,
         playerBiography, setPlayerBiography, playerGoals, setPlayerGoals,
         enableHeThong, setEnableHeThong, enableAdultContent, setEnableAdultContent,
         linhCanQuality, setLinhCanQuality, nguHanh, setNguHanh, difficulty,
@@ -363,7 +365,7 @@ export const useScenarioSetup = ({ onStartGame }: UseScenarioSetupProps) => {
         initialNpcs, setInitialNpcs, initialSects, setInitialSects,
         worldLocations, setWorldLocations, startingLocationId, setStartingLocationId,
         cultivationSystem, setCultivationSystem, startingCultivationStageId, setStartingCultivationStageId,
-        isSimulatorOpen, setIsSimulatorOpen, simulatorSelection,
+        isSimulatorOpen, setIsSimulatorOpen, isPlayerImageModalOpen, setIsPlayerImageModalOpen, simulatorSelection,
         fileInputRef, selectedScenario, loadedScenarios, customThienThu,
         setCustomThienThu, destinyDefs, setDestinyDefs, statusEffectDefs,
         setStatusEffectDefs, itemEffectDefs, setItemEffectDefs,

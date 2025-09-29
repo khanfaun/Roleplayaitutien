@@ -7,6 +7,7 @@ import { ScenarioTab } from './setup/ScenarioTab';
 import { ElementsTab } from './setup/ElementsTab';
 import { CustomizationTab } from './setup/CustomizationTab';
 import { useScenarioSetup } from '../hooks/useScenarioSetup';
+import { ImageAssignmentModal } from './GamePanels';
 
 interface ScenarioSetupProps {
   onStartGame: (setupData: ScenarioData) => void;
@@ -28,6 +29,13 @@ export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBac
                 currentPlayer={setup.mockPlayerForSimulator}
                 isSetupMode={true}
                 initialSelection={setup.simulatorSelection}
+            />
+
+            <ImageAssignmentModal
+                isOpen={setup.isPlayerImageModalOpen}
+                onClose={() => setup.setIsPlayerImageModalOpen(false)}
+                item={{ name: setup.playerName || 'Nhân Vật Chính' }}
+                onAssign={(id) => setup.setPlayerImageId(id)}
             />
 
             <div className="w-full max-w-7xl h-full max-h-[95vh] flex flex-col gap-4">
@@ -88,6 +96,8 @@ export const ScenarioSetup: React.FC<ScenarioSetupProps> = ({ onStartGame, onBac
                         {setup.mainTab === 'character' && (
                             <CharacterTab 
                                 playerName={setup.playerName} setPlayerName={setup.setPlayerName}
+                                playerImageId={setup.playerImageId}
+                                onOpenImageModal={() => setup.setIsPlayerImageModalOpen(true)}
                                 playerAge={setup.playerAge} setPlayerAge={setup.setPlayerAge}
                                 playerBiography={setup.playerBiography} setPlayerBiography={setup.setPlayerBiography}
                                 playerGoals={setup.playerGoals} setPlayerGoals={setup.setPlayerGoals}

@@ -13,7 +13,7 @@ import { IntroScreen } from './components/ui/IntroScreen';
 import { DeathScreen } from './components/ui/DeathScreen';
 import { DesktopLayout } from './components/layout/DesktopLayout';
 import { MobileLayout } from './components/layout/MobileLayout';
-import { HeThongPanel, InventoryPanel } from './components/GamePanels';
+import { HeThongPanel, ImageAssignmentModal, InventoryPanel } from './components/GamePanels';
 import { SmartTooltip } from './components/SmartTooltip';
 import Panel from './components/Panel';
 import { BackpackIcon } from './components/Icons';
@@ -26,6 +26,7 @@ const App: React.FC = () => {
     const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
     const [isHeThongModalOpen, setIsHeThongModalOpen] = useState(false);
     const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
+    const [isPlayerImageModalOpen, setIsPlayerImageModalOpen] = useState(false);
     
     const [showHeThongTutorial, setShowHeThongTutorial] = useState(false);
     const heThongIconRef = useRef<HTMLButtonElement>(null);
@@ -167,6 +168,13 @@ const App: React.FC = () => {
                 onClose={() => setIsHeThongModalOpen(false)}
             />
 
+            <ImageAssignmentModal
+                isOpen={isPlayerImageModalOpen}
+                onClose={() => setIsPlayerImageModalOpen(false)}
+                item={game.gameState.player}
+                onAssign={game.handlePlayerImageChange}
+            />
+
             {isInventoryModalOpen && (
                 <div className="fixed inset-0 bg-black/70 z-40 flex items-center justify-center p-4" onClick={handleToggleInventoryModal}>
                     <div className="w-full max-w-2xl h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
@@ -226,6 +234,7 @@ const App: React.FC = () => {
                 setIsSimulatorOpen={setIsSimulatorOpen}
                 onOpenHeThongModal={() => setIsHeThongModalOpen(true)}
                 onOpenInventoryModal={handleToggleInventoryModal}
+                onOpenPlayerImageModal={() => setIsPlayerImageModalOpen(true)}
                 heThongIconRef={heThongIconRef}
                 isHeThongTutorialActive={showHeThongTutorial}
             />

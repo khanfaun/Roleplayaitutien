@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 // FIX: Removed `Sect` from import as it's deprecated and `InitialSect` is already imported.
 import type { GameState, Player, Item, ActionOutcome, CombatState, WorldPhase, Recipe, Quest, BoardSquare, DongPhuBuilding, Rule, JournalEntry, LogEntry, HeThongQuest, ScenarioData, NguHanhType, PlayerAttributes, StatChange, BreakthroughReport, ScenarioStage, StatusEffect, MajorRealm, MinorRealm, CultivationTier, RealmQuality, InitialItem, InitialCongPhap, CombatTurnOutcome, InitialSect } from '../types';
@@ -201,13 +202,26 @@ export const useGameLogic = () => {
     
     // --- API & SESSION MANAGEMENT ---
     const goHome = useCallback(() => {
+        // Save game state before exiting to home, unless in demo mode
+        if (!isDemoMode && isInitialized) {
+            try {
+                const stateToSave = { ...gameState, breakthroughReport: null };
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stateToSave));
+                setHasLocalSave(true);
+                addLogEntry({ type: 'system', content: 'Tiến trình đã được lưu.' });
+            } catch (error) {
+                console.error("Failed to save game state on exit to home:", error);
+                addLogEntry({ type: 'system', content: 'Lỗi: Không thể lưu tiến trình.' });
+            }
+        }
+
         setIsInitialized(false);
         setIsDemoMode(false);
         setIsRequestingApiKey(false);
         setGameState(applyCustomThienThu(JSON.parse(JSON.stringify(INITIAL_GAME_STATE))));
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        setHasLocalSave(false);
-    }, []);
+        // No longer removing the local storage item.
+    }, [isDemoMode, isInitialized, gameState, addLogEntry]);
+
 
     useEffect(() => {
         if (!DEV_MODE_SKIP_API_KEY && !isDemoMode) {
@@ -354,6 +368,15 @@ export const useGameLogic = () => {
                 const text = e.target?.result;
                 if (typeof text === 'string') {
                     const loadedState: Partial<GameState> = JSON.parse(text);
+                    
+                    // Sanitize scenario stages to ensure `completed` property exists.
+                    if (loadedState.scenarioStages) {
+                        loadedState.scenarioStages = loadedState.scenarioStages.map(s => ({
+                            ...s,
+                            completed: s.completed || false
+                        }));
+                    }
+
                     let finalState: GameState = { ...INITIAL_GAME_STATE, ...loadedState, player: { ...INITIAL_GAME_STATE.player, ...(loadedState.player || {}) }, dongPhu: { ...INITIAL_GAME_STATE.dongPhu, ...(loadedState.dongPhu || {}) }, heThong: { ...INITIAL_GAME_STATE.heThong, ...(loadedState.heThong || {}) }, thienThu: { ...INITIAL_GAME_STATE.thienThu, ...(loadedState.thienThu || {}) }, worldData: { ...INITIAL_GAME_STATE.worldData, ...(loadedState.worldData || {}) } };
                     finalState = applyCustomThienThu(finalState);
                     setGameState(finalState);
@@ -382,6 +405,9 @@ export const useGameLogic = () => {
 
     const clearBreakthroughReport = useCallback(() => setGameState(prev => ({ ...prev, breakthroughReport: null })), []);
     const handlePlayerNameChange = useCallback((newName: string) => setGameState(prev => ({...prev, player: {...prev.player, name: newName}})), []);
+    const handlePlayerImageChange = useCallback((imageId: string) => {
+        setGameState(prev => ({ ...prev, player: { ...prev.player, imageId: imageId } }));
+    }, []);
     const handleRulesChange = useCallback((type: 'thienDao' | 'ai' | 'coreMemory', newRules: Rule[]) => {
         if (type === 'thienDao') setGameState(prev => ({...prev, thienDaoRules: newRules}));
         else if (type === 'ai') setGameState(prev => ({...prev, aiRules: newRules}));
@@ -389,7 +415,13 @@ export const useGameLogic = () => {
     }, []);
     const handleJournalEntriesChange = useCallback((newJournal: JournalEntry[]) => setGameState(prev => ({...prev, journal: newJournal})), []);
     const handleScenarioUpdate = useCallback((updates: { summary?: string, stages?: ScenarioStage[] }) => {
-        setGameState(prev => ({ ...prev, scenarioSummary: updates.summary ?? prev.scenarioSummary, scenarioStages: updates.stages ?? prev.scenarioStages }));
+        setGameState(prev => ({ ...prev, scenarioSummary: updates.summary ?? prev.scenarioSummary, scenarioStages: updates.stages ? updates.stages.map(s => ({...s, completed: s.completed || false})) : prev.scenarioStages }));
+    }, []);
+    const handleScenarioStageChange = useCallback((stageId: string, completed: boolean) => {
+        setGameState(prev => ({
+            ...prev,
+            scenarioStages: prev.scenarioStages.map(s => s.id === stageId ? { ...s, completed } : s)
+        }));
     }, []);
     const handleItemImageChange = useCallback((itemId: string, imageId: string) => {
         setGameState(prev => ({ ...prev, inventory: prev.inventory.map(item => item.id === itemId ? { ...item, imageId: imageId } : item) }));
@@ -441,9 +473,11 @@ export const useGameLogic = () => {
         triggerManualBreakthrough,
         clearBreakthroughReport,
         handlePlayerNameChange,
+        handlePlayerImageChange,
         handleRulesChange,
         handleJournalEntriesChange,
         handleScenarioUpdate,
+        handleScenarioStageChange,
         handleItemImageChange,
         handleThienThuItemImageChange,
         setCurrentMapViewId,

@@ -1,4 +1,4 @@
-import type { GameState, ActionOutcome, CombatTurnOutcome, LogEntry, Player, Quest, HeThongQuest, BreakthroughReport, StatusEffect } from '../../types';
+import type { GameState, ActionOutcome, CombatTurnOutcome, LogEntry, Player, Quest, HeThongQuest, BreakthroughReport, StatusEffect, ScenarioStage } from '../../types';
 import { FULL_CONTEXT_REFRESH_CYCLE } from '../../constants';
 import { STATUS_EFFECT_DEFINITIONS } from '../../data/effects';
 import { findRealmDetails, updatePlayerStatsForCultivation, calculateStatChanges } from './cultivation';
@@ -22,6 +22,7 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
     let newBreakthroughReport: BreakthroughReport | null = null;
     let newInGameNpcs = [...prev.inGameNpcs];
     let newDiscoveredIds = { ...prev.discoveredEntityIds };
+    let newScenarioStages = [...prev.scenarioStages];
 
     if (outcome.newlyDiscoveredIds) {
         newDiscoveredIds.locations = [...new Set([...newDiscoveredIds.locations, ...(outcome.newlyDiscoveredIds.locations || [])])];
@@ -134,6 +135,18 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
         });
     }
 
+    if (outcome.scenarioStageUpdates) {
+        outcome.scenarioStageUpdates.forEach(update => {
+            const stageIndex = newScenarioStages.findIndex(s => s.id === update.stageId);
+            if (stageIndex > -1) {
+                newScenarioStages[stageIndex].completed = update.completed;
+                if(update.completed) {
+                    logEntries.push({ type: 'system', content: `Đã hoàn thành giai đoạn cốt truyện: [${newScenarioStages[stageIndex].text.substring(0, 30)}...]` });
+                }
+            }
+        });
+    }
+
     let currentStatusEffects = [...newPlayer.statusEffects];
     if (outcome.removeStatusEffectIds) {
         outcome.removeStatusEffectIds.forEach(idToRemove => {
@@ -215,7 +228,7 @@ export const processActionOutcomeReducer = (prev: GameState, outcome: ActionOutc
         newShortTermMemory = [...prev.shortTermMemory, newJournalEntry].slice(-FULL_CONTEXT_REFRESH_CYCLE);
     }
 
-    return { ...prev, player: newPlayer, inventory: newInventory, quests: newQuests, currentEvent: newCurrentEvent, combatState: newCombatState, isDead: isDead, turnCounter: newTurnCounter, diceRolls: prev.diceRolls + (outcome.diceRollsChange || 0) + (newTurnCounter % 20 === 0 && turnIncrement > 0 ? 1 : 0), turnInCycle: (prev.turnInCycle + turnIncrement) % FULL_CONTEXT_REFRESH_CYCLE, heThong: newHeThongState, isAtBottleneck: isAtBottleneck, tribulationEvent: newTribulationEvent, breakthroughReport: newBreakthroughReport, gameLog: newGameLog.slice(-100), journal: newJournal, shortTermMemory: newShortTermMemory, inGameNpcs: newInGameNpcs, discoveredEntityIds: newDiscoveredIds };
+    return { ...prev, player: newPlayer, inventory: newInventory, quests: newQuests, currentEvent: newCurrentEvent, combatState: newCombatState, isDead: isDead, turnCounter: newTurnCounter, diceRolls: prev.diceRolls + (outcome.diceRollsChange || 0) + (newTurnCounter % 20 === 0 && turnIncrement > 0 ? 1 : 0), turnInCycle: (prev.turnInCycle + turnIncrement) % FULL_CONTEXT_REFRESH_CYCLE, heThong: newHeThongState, isAtBottleneck: isAtBottleneck, tribulationEvent: newTribulationEvent, breakthroughReport: newBreakthroughReport, gameLog: newGameLog.slice(-100), journal: newJournal, shortTermMemory: newShortTermMemory, inGameNpcs: newInGameNpcs, discoveredEntityIds: newDiscoveredIds, scenarioStages: newScenarioStages };
 };
 
 export const processCombatTurnOutcomeReducer = (prev: GameState, outcome: CombatTurnOutcome, deps: { addLogEntry: (entry: LogEntry) => void }): GameState => {

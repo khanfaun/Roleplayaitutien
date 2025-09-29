@@ -256,6 +256,19 @@ export const actionOutcomeSchema = {
                 required: ['questId']
             }
         },
+        scenarioStageUpdates: {
+            type: Type.ARRAY,
+            nullable: true,
+            description: "Cập nhật trạng thái hoàn thành của các giai đoạn kịch bản.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    stageId: { type: Type.STRING },
+                    completed: { type: Type.BOOLEAN }
+                },
+                required: ['stageId', 'completed']
+            }
+        },
         tribulationOutcome: {
             type: Type.OBJECT,
             nullable: true,

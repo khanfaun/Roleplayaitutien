@@ -163,6 +163,7 @@ export interface BoardSquare {
 export interface ScenarioStage {
     id: string;
     text: string;
+    completed: boolean;
 }
 
 export interface Item {
@@ -307,7 +308,7 @@ export interface ScenarioData {
     playerSectId: string | null;
     playerSectRank: string | null;
     scenarioSummary: string;
-    scenarioStages: ScenarioStage[];
+    scenarioStages: Omit<ScenarioStage, 'completed'>[];
     thienDaoRules: Rule[];
     coreMemoryRules: Rule[];
     initialItems: InitialItem[];
@@ -510,6 +511,10 @@ export interface ActionOutcome {
         newStatus?: 'Hoàn thành' | 'Thất bại';
         hiddenObjectiveCompleted?: boolean;
         unlockSystemFeature?: string;
+    }[];
+    scenarioStageUpdates?: {
+        stageId: string;
+        completed: boolean;
     }[];
     tribulationOutcome?: {
         success: boolean;

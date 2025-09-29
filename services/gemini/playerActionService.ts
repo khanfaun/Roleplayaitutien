@@ -191,6 +191,7 @@ QUY TẮC KHOẢNG CÁCH: Di chuyển giữa các địa điểm cùng cấp b�
         },
         currentEventDescription: currentEvent?.description,
         tribulationEventDescription: tribulationEvent?.description,
+        scenarioStages: scenarioStages.map(s => ({ id: s.id, text: s.text, completed: s.completed })),
     };
 
     let tribulationInstructions = '';
@@ -238,7 +239,8 @@ Dựa vào toàn bộ bối cảnh và hành động của người chơi, hãy 
 - **\`outcomeDescription\`**: Viết một đoạn văn chi tiết, hấp dẫn để mô tả kết quả hành động.
 - **\`nextEvent\`**: Mô tả bối cảnh cho sự kiện tiếp theo và cung cấp chính xác 4 lựa chọn hành động trong mảng 'options'.
 - **\`journalEntry\`**: Tóm tắt \`outcomeDescription\` thành một câu RẤT NGẮN GỌN (5-50 từ).
-- **Cập nhật trạng thái:** Cập nhật các nhiệm vụ, chỉ số, trạng thái của người chơi và NPC một cách logic.`;
+- **Cập nhật trạng thái:** Cập nhật các nhiệm vụ, chỉ số, trạng thái của người chơi và NPC một cách logic.
+- **Cập nhật Giai đoạn Kịch bản:** Phân tích diễn biến câu chuyện. Nếu hành động của người chơi đã hoàn thành mục tiêu của một giai đoạn kịch bản chưa hoàn thành (completed: false), hãy trả về ID và trạng thái mới (completed: true) trong mảng \`scenarioStageUpdates\`.`;
 
     const formattedThienThuData = formatThienThuDataForPrompt(thienThu);
 

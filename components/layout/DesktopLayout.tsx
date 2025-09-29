@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import type { useGameLogic } from '../../hooks/useGameLogic';
 import Panel from '../Panel';
 import { InteractionUI } from '../InteractionUI';
-import { QuestPanelContent, CharacterPanelContent, DongPhuPanel, InventoryPanel, ManagementPanelContent, HeThongPanel, SectPanelContent, StatusEffectsDisplay, DestinyLabel, ThienThuPanelContent, WorldPanel, NpcPanelContent, QuestLogModal } from '../GamePanels';
-import { HeartIcon, StarIcon, ZapIcon, BookOpenIcon, BackpackIcon, UserIcon, CalendarIcon, CogIcon, PencilIcon, CheckIcon, XIcon, BuildingLibraryIcon, MapIcon, RunningIcon, BrainIcon, ScrollIcon, HomeIcon, UsersIcon, ShieldCheckIcon, CpuChipIcon, SearchIcon } from '../Icons';
+import { QuestPanelContent, CharacterPanelContent, DongPhuPanel, InventoryPanel, ManagementPanelContent, HeThongPanel, SectPanelContent, StatusEffectsDisplay, DestinyLabel, ThienThuPanelContent, WorldPanel, NpcPanelContent, QuestLogModal, getImageUrl } from '../GamePanels';
+import { HeartIcon, StarIcon, ZapIcon, BookOpenIcon, BackpackIcon, UserIcon, CalendarIcon, CogIcon, PencilIcon, CheckIcon, XIcon, BuildingLibraryIcon, MapIcon, RunningIcon, BrainIcon, ScrollIcon, HomeIcon, UsersIcon, ShieldCheckIcon, CpuChipIcon, SearchIcon, BriefcaseIcon } from '../Icons';
 import { DESTINY_DEFINITIONS } from '../../data/effects';
 
 interface DesktopLayoutProps {
@@ -18,6 +18,7 @@ interface DesktopLayoutProps {
     setIsSimulatorOpen: (isOpen: boolean) => void;
     onOpenHeThongModal: () => void;
     onOpenInventoryModal: () => void;
+    onOpenPlayerImageModal: () => void;
     heThongIconRef: React.RefObject<HTMLButtonElement>;
     isHeThongTutorialActive: boolean;
 }
@@ -34,6 +35,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
     setIsSimulatorOpen,
     onOpenHeThongModal,
     onOpenInventoryModal,
+    onOpenPlayerImageModal,
     heThongIconRef,
     isHeThongTutorialActive
 }) => {
@@ -132,120 +134,124 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                     isCollapsed={false}
                     onToggle={() => {}}
                     actionButton={{
-                        icon: <BackpackIcon />,
+                        icon: <BriefcaseIcon />,
                         onClick: onOpenInventoryModal,
                         title: "Mở Túi Đồ"
                     }}
                 >
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            {isEditingName ? (
-                                <div className="flex items-center gap-2 flex-grow">
-                                    <input
-                                        type="text"
-                                        value={editedName}
-                                        onChange={(e) => setEditedName(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleNameEditConfirm()}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xl font-bold text-yellow-300 focus:outline-none focus:ring-1 focus:ring-yellow-500"
-                                        autoFocus
-                                    />
-                                    <button onClick={handleNameEditConfirm} className="p-1 text-green-400 hover:bg-slate-700 rounded-full"><CheckIcon className="w-5 h-5"/></button>
-                                    <button onClick={() => setIsEditingName(false)} className="p-1 text-red-400 hover:bg-slate-700 rounded-full"><XIcon className="w-5 h-5"/></button>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">{game.gameState.player.name}</h1>
-                                    <button onClick={() => { setIsEditingName(true); }} className="text-slate-400 hover:text-yellow-300 transition-colors">
-                                        <PencilIcon className="w-4 h-4" />
-                                    </button>
-                                     {game.gameState.player.heThongStatus === 'active' && (
-                                        <button
-                                            ref={heThongIconRef}
-                                            onClick={onOpenHeThongModal}
-                                            className={`p-1 bg-slate-800/70 rounded-full hover:bg-slate-700 transition-colors relative ${isHeThongTutorialActive ? 'z-[60]' : ''} ${game.gameState.player.heThongStatus === 'active' ? 'animate-pulse' : ''}`}
-                                            title="Mở Bảng Hệ Thống"
-                                        >
-                                            <CpuChipIcon className="w-5 h-5 text-cyan-300" />
-                                        </button>
+                    <div className="p-4 space-y-6">
+                        {/* Player Info Block */}
+                        <div className="flex items-center gap-4">
+                            <div className="w-24 h-24 flex-shrink-0 rounded-full overflow-hidden bg-slate-700 relative group">
+                                {game.gameState.player.imageId ? (
+                                    <img src={getImageUrl(game.gameState.player.imageId)} alt={game.gameState.player.name} className="w-full h-full object-cover"/>
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-slate-500">
+                                        <UserIcon className="w-16 h-16"/>
+                                    </div>
+                                )}
+                                <button
+                                    onClick={onOpenPlayerImageModal}
+                                    className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Đổi ảnh đại diện"
+                                >
+                                    <PencilIcon className="w-8 h-8 text-white"/>
+                                </button>
+                            </div>
+                            <div className="flex-grow min-w-0">
+                                <div className="flex justify-between items-start">
+                                    {isEditingName ? (
+                                        <div className="flex items-center gap-1 flex-grow">
+                                            <input
+                                                type="text"
+                                                value={editedName}
+                                                onChange={(e) => setEditedName(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleNameEditConfirm()}
+                                                className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xl font-bold text-yellow-300 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                                                autoFocus
+                                            />
+                                            <button onClick={handleNameEditConfirm} className="p-1 text-green-400 hover:bg-slate-700 rounded-full"><CheckIcon className="w-4 h-4"/></button>
+                                            <button onClick={() => setIsEditingName(false)} className="p-1 text-red-400 hover:bg-slate-700 rounded-full"><XIcon className="w-4 h-4"/></button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">{game.gameState.player.name}</h1>
+                                            <button onClick={() => setIsEditingName(true)} className="text-slate-400 hover:text-yellow-300 transition-colors">
+                                                <PencilIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     )}
+                                    <span className="text-sm font-semibold text-yellow-300 flex-shrink-0 ml-2">Cấp {game.gameState.player.level}</span>
                                 </div>
-                            )}
-                            <span className="text-sm font-semibold text-yellow-300 flex-shrink-0">Cấp {game.gameState.player.level}</span>
-                        </div>
-                        <div className="space-y-1 text-xs">
-                            <p className="font-medium text-cyan-300">{game.gameState.player.cultivationStage}</p>
-                            <p className="text-slate-400">Tuổi: {game.gameState.player.age} / {game.gameState.player.lifespan}</p>
-                            <div className="flex items-center gap-2 text-slate-300">
-                                <CalendarIcon className="w-4 h-4 text-gray-400"/>
-                                <span>Năm {game.gameState.player.year}, Tháng {game.gameState.player.month}, Ngày {game.gameState.player.day}</span>
-                            </div>
-                        </div>
-                        <div className="mt-3 space-y-2 text-xs">
-                            <div title="Sinh Lực">
-                                <div className="flex items-center gap-2">
-                                    <HeartIcon className="w-4 h-4 text-red-400 flex-shrink-0"/>
-                                    <div className="w-full bg-slate-700/50 rounded-full h-2.5 overflow-hidden">
-                                        <div className="h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-red-500 to-orange-500" style={{ width: `${Math.max(0, (game.gameState.player.hp / game.gameState.player.maxHp) * 100)}%` }}></div>
+                                <div className="mt-1 text-xs text-slate-400 space-y-1">
+                                    <p className="font-medium text-cyan-300">{game.gameState.player.cultivationStage}</p>
+                                    <p>Tuổi: {game.gameState.player.age} / {game.gameState.player.lifespan}</p>
+                                    <div className="flex items-center gap-2">
+                                        <CalendarIcon className="w-4 h-4" />
+                                        <span>Năm {game.gameState.player.year}, Tháng {game.gameState.player.month}, Ngày {game.gameState.player.day}</span>
                                     </div>
-                                    <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.hp} / ${game.gameState.player.maxHp}`}</span>
-                                </div>
-                            </div>
-                            <div title="Linh Lực">
-                                <div className="flex items-center gap-2">
-                                    <ZapIcon className="w-4 h-4 text-blue-400 flex-shrink-0"/>
-                                    <div className="w-full bg-slate-700/50 rounded-full h-2.5 overflow-hidden">
-                                        <div className="h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-blue-500 to-cyan-400" style={{ width: `${Math.max(0, (game.gameState.player.spiritPower / game.gameState.player.maxSpiritPower) * 100)}%` }}></div>
-                                    </div>
-                                    <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.spiritPower} / ${game.gameState.player.maxSpiritPower}`}</span>
-                                </div>
-                            </div>
-                            <div title="Thể Lực">
-                                <div className="flex items-center gap-2">
-                                    <RunningIcon className="w-4 h-4 text-green-400 flex-shrink-0"/>
-                                    <div className="w-full bg-slate-700/50 rounded-full h-2.5 overflow-hidden">
-                                        <div className="h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-green-500 to-emerald-500" style={{ width: `${Math.max(0, (game.gameState.player.stamina / game.gameState.player.maxStamina) * 100)}%` }}></div>
-                                    </div>
-                                    <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.stamina} / ${game.gameState.player.maxStamina}`}</span>
-                                </div>
-                            </div>
-                            <div title="Tâm Cảnh">
-                                <div className="flex items-center gap-2">
-                                    <BrainIcon className="w-4 h-4 text-purple-400 flex-shrink-0"/>
-                                    <div className="w-full bg-slate-700/50 rounded-full h-2.5 overflow-hidden">
-                                        <div className="h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-purple-500 to-violet-500" style={{ width: `${Math.max(0, (game.gameState.player.mentalState / game.gameState.player.maxMentalState) * 100)}%` }}></div>
-                                    </div>
-                                    <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.mentalState} / ${game.gameState.player.maxMentalState}`}</span>
-                                </div>
-                            </div>
-                            <div title="Kinh Nghiệm">
-                                <div className="flex items-center gap-2">
-                                    <StarIcon className="w-4 h-4 text-yellow-400 flex-shrink-0"/>
-                                    <div className="w-full bg-slate-700/50 rounded-full h-2.5 overflow-hidden">
-                                        <div className={`h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-amber-400 to-yellow-500 ${game.gameState.isAtBottleneck ? 'animate-pulse' : ''}`} style={{ width: `${Math.max(0, (game.gameState.player.exp / game.gameState.player.maxExp) * 100)}%` }}></div>
-                                    </div>
-                                    <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.exp} / ${game.gameState.player.maxExp}`}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-4">
-                            <div>
-                                <h4 className="text-base font-bold text-yellow-300 mb-2">Trạng Thái</h4>
-                                <StatusEffectsDisplay effects={game.gameState.player.statusEffects} player={game.gameState.player} />
-                            </div>
-                            {game.gameState.player.selectedDestinyIds && game.gameState.player.selectedDestinyIds.length > 0 && (
-                                <div className="pt-3 border-t border-slate-700/50">
-                                    <h4 className="text-base font-bold text-yellow-300 mb-2">Tiên Thiên Khí Vận</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {game.gameState.player.selectedDestinyIds.map(id => {
-                                            const destiny = DESTINY_DEFINITIONS[id as keyof typeof DESTINY_DEFINITIONS];
-                                            if (!destiny) return null;
-                                            return <DestinyLabel key={id} destiny={destiny} />;
-                                        })}
-                                    </div>
+                        {/* Stats Block */}
+                        <div className="space-y-2 text-xs">
+                            <div title="Sinh Lực" className="flex items-center gap-2">
+                                <HeartIcon className="w-4 h-4 text-red-400 flex-shrink-0"/>
+                                <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                    <div className="h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-red-500 to-orange-500" style={{ width: `${Math.max(0, (game.gameState.player.hp / game.gameState.player.maxHp) * 100)}%` }}></div>
                                 </div>
-                            )}
+                                <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.hp} / ${game.gameState.player.maxHp}`}</span>
+                            </div>
+                            <div title="Linh Lực" className="flex items-center gap-2">
+                                <ZapIcon className="w-4 h-4 text-blue-400 flex-shrink-0"/>
+                                <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                    <div className="h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-blue-500 to-cyan-400" style={{ width: `${Math.max(0, (game.gameState.player.spiritPower / game.gameState.player.maxSpiritPower) * 100)}%` }}></div>
+                                </div>
+                                <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.spiritPower} / ${game.gameState.player.maxSpiritPower}`}</span>
+                            </div>
+                            <div title="Thể Lực" className="flex items-center gap-2">
+                                <RunningIcon className="w-4 h-4 text-green-400 flex-shrink-0"/>
+                                <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                    <div className="h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-green-500 to-emerald-500" style={{ width: `${Math.max(0, (game.gameState.player.stamina / game.gameState.player.maxStamina) * 100)}%` }}></div>
+                                </div>
+                                <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.stamina} / ${game.gameState.player.maxStamina}`}</span>
+                            </div>
+                            <div title="Tâm Cảnh" className="flex items-center gap-2">
+                                <BrainIcon className="w-4 h-4 text-purple-400 flex-shrink-0"/>
+                                <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                    <div className="h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-purple-500 to-violet-500" style={{ width: `${Math.max(0, (game.gameState.player.mentalState / game.gameState.player.maxMentalState) * 100)}%` }}></div>
+                                </div>
+                                <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.mentalState} / ${game.gameState.player.maxMentalState}`}</span>
+                            </div>
+                            <div title="Kinh Nghiệm" className="flex items-center gap-2">
+                                <StarIcon className="w-4 h-4 text-yellow-400 flex-shrink-0"/>
+                                <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                    <div className={`h-2.5 rounded-full transition-all duration-500 bg-gradient-to-r from-amber-400 to-yellow-500 ${game.gameState.isAtBottleneck ? 'animate-pulse' : ''}`} style={{ width: `${Math.max(0, (game.gameState.player.exp / game.gameState.player.maxExp) * 100)}%` }}></div>
+                                </div>
+                                <span className="text-xs font-mono w-24 text-right">{`${game.gameState.player.exp} / ${game.gameState.player.maxExp}`}</span>
+                            </div>
                         </div>
+
+                        {/* Trạng Thái Block */}
+                        <div>
+                            <h3 className="text-lg font-bold text-yellow-300 mb-2">Trạng Thái</h3>
+                            <StatusEffectsDisplay effects={game.gameState.player.statusEffects} player={game.gameState.player} />
+                        </div>
+
+                        {/* Tiên Thiên Khí Vận Block */}
+                        {game.gameState.player.selectedDestinyIds && game.gameState.player.selectedDestinyIds.length > 0 && (
+                            <div className="pt-4 border-t border-slate-700/50">
+                                <h3 className="text-lg font-bold text-yellow-300 mb-2">Tiên Thiên Khí Vận</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {game.gameState.player.selectedDestinyIds.map(id => {
+                                        const destiny = DESTINY_DEFINITIONS[id as keyof typeof DESTINY_DEFINITIONS];
+                                        if (!destiny) return null;
+                                        return <DestinyLabel key={id} destiny={destiny} />;
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </Panel>
                 
@@ -309,6 +315,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                         onRulesChange={(type, rules) => game.handleRulesChange(type, rules)} 
                         onJournalChange={(journal) => game.handleJournalEntriesChange(journal)} 
                         onScenarioUpdate={(updates) => game.handleScenarioUpdate(updates)}
+                        onScenarioStageChange={game.handleScenarioStageChange}
                         handleSaveGame={() => game.handleSaveGame()} 
                         handleLoadGame={(file) => game.handleLoadGame(file)} 
                         handleGoHome={() => game.goHome()} 
